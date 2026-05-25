@@ -1,147 +1,109 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* ─── Design tokens (matching Meridian HTML design) ─── */
-:root {
-  color-scheme: dark;
+@theme {
+  --color-background-primary: #0a0a0b;
+  --color-background-secondary: #121214;
+  --color-background-tertiary: #18181b;
+  
+  --color-border-primary: #27272a;
+  --color-border-secondary: #3f3f46;
 
-  /* Backgrounds */
-  --color-background-primary:   #161618;
-  --color-background-secondary: #1e1e20;
-  --color-background-tertiary:  #0f0f11;
-  --color-background-success:   rgba(16, 185, 129, 0.12);
-  --color-background-danger:    rgba(239, 68, 68, 0.12);
-  --color-background-info:      rgba(59, 130, 246, 0.12);
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #71717a;
 
-  /* Text */
-  --color-text-primary:   #f2f2f7;
-  --color-text-secondary: #8e8e93;
-  --color-text-tertiary:  #48484a;
-  --color-text-success:   #10b981;
-  --color-text-danger:    #ef4444;
-  --color-text-info:      #3b82f6;
+  --color-accent-blue: #3b82f6;
+  --color-accent-blue-hover: #2563eb;
+  --color-accent-blue-subtle: rgba(59, 130, 246, 0.1);
 
-  /* Borders */
-  --color-border-tertiary: rgba(255, 255, 255, 0.07);
-  --color-border-secondary: rgba(255, 255, 255, 0.11);
-  --color-border-info:     rgba(59, 130, 246, 0.3);
+  --color-accent-emerald: #10b981;
+  --color-accent-emerald-subtle: rgba(16, 185, 129, 0.1);
 
-  /* Border radius */
-  --border-radius-sm: 4px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
+  --color-accent-rose: #f43f5e;
+  --color-accent-rose-subtle: rgba(244, 63, 94, 0.1);
+  
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
-html {
-  min-height: 100%;
-  background-color: var(--color-background-tertiary);
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--color-border-primary);
+  }
+  html {
+    min-height: 100%;
+    background-color: var(--color-background-primary);
+  }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background-color: var(--color-background-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Scrollbar Customization */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-secondary);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-tertiary);
+  }
 }
 
-body {
-  margin: 0;
-  min-height: 100%;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    'Segoe UI', sans-serif;
-  background-color: var(--color-background-tertiary);
-  color: var(--color-text-primary);
-  font-size: 13px;
-  -webkit-font-smoothing: antialiased;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-
-/* Component Classes */
-.badge {
-  font-size: 10px;
-  padding: 2px 7px;
-  border-radius: var(--border-radius-md);
-  font-weight: 500;
-}
-.badge-income {
-  background: var(--color-background-success);
-  color: var(--color-text-success);
-}
-.badge-expense {
-  background: var(--color-background-danger);
-  color: var(--color-text-danger);
-}
-.badge-ai {
-  background: var(--color-background-info);
-  color: var(--color-text-info);
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.table th {
-  text-align: left;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  border-bottom: 0.5px solid var(--color-border-tertiary);
-}
-.table td {
-  padding: 8px 10px;
-  border-bottom: 0.5px solid var(--color-border-tertiary);
-  color: var(--color-text-primary);
-}
-.table tr:hover td {
-  background: var(--color-background-secondary);
-}
-
-/* Forms and Inputs */
-.btn-primary {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: var(--border-radius-md);
-  padding: 7px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-}
-.btn-primary:hover {
-  background: #1d4ed8;
-}
-
-.page-card {
-  background: var(--color-background-primary);
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-lg);
-  padding: 14px 16px;
-}
-
-.goal-card {
-  background: var(--color-background-primary);
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-lg);
-  padding: 14px 16px;
-}
-.goal-bar {
-  height: 6px;
-  background: var(--color-background-secondary);
-  border-radius: 3px;
-  overflow: hidden;
-  margin: 8px 0 5px;
-}
-.goal-fill {
-  height: 6px;
-  border-radius: 3px;
-  background: #2563eb;
+@layer components {
+  .glass-panel {
+    @apply bg-background-secondary/60 backdrop-blur-md border border-border-primary rounded-xl;
+  }
+  
+  .glass-card {
+    @apply bg-background-secondary border border-border-primary rounded-xl shadow-lg shadow-black/20 transition-all duration-300;
+  }
+  
+  .btn-primary {
+    @apply bg-accent-blue text-white font-medium rounded-lg px-4 py-2 flex items-center justify-center gap-2 hover:bg-accent-blue-hover transition-colors shadow-sm shadow-accent-blue/20;
+  }
+  
+  .badge {
+    @apply px-2 py-0.5 rounded-md text-[11px] font-medium inline-flex items-center;
+  }
+  
+  .badge-income {
+    @apply bg-accent-emerald-subtle text-accent-emerald border border-accent-emerald/20;
+  }
+  
+  .badge-expense {
+    @apply bg-accent-rose-subtle text-accent-rose border border-accent-rose/20;
+  }
+  
+  .badge-ai {
+    @apply bg-accent-blue-subtle text-accent-blue border border-accent-blue/20;
+  }
+  
+  .table {
+    @apply w-full text-left text-sm border-collapse;
+  }
+  
+  .table th {
+    @apply text-text-secondary font-medium px-4 py-3 border-b border-border-primary text-xs uppercase tracking-wider;
+  }
+  
+  .table td {
+    @apply px-4 py-3 border-b border-border-primary text-text-primary transition-colors group-hover:bg-background-tertiary/50;
+  }
+  
+  .table tr {
+    /* group needs to be applied directly in HTML */
+  }
 }

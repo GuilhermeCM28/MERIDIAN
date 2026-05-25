@@ -26,17 +26,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-background-tertiary)]">
+    <div className="flex min-h-screen bg-background-primary text-text-primary">
       
       {/* ── Mobile Topbar ── */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-[var(--color-border-tertiary)] bg-[var(--color-background-primary)] fixed top-0 left-0 right-0 z-40">
-        <div className="flex items-center gap-2">
-           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-             <Globe className="w-3.5 h-3.5 text-white" strokeWidth={2} />
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-border-primary bg-background-secondary/80 backdrop-blur-xl fixed top-0 left-0 right-0 z-40 shadow-sm">
+        <div className="flex items-center gap-3">
+           <div className="w-8 h-8 rounded-xl bg-accent-blue flex items-center justify-center flex-shrink-0 shadow-lg shadow-accent-blue/20">
+             <Globe className="w-4 h-4 text-white" strokeWidth={2} />
            </div>
-           <span className="text-sm font-medium text-white">Meridian</span>
+           <span className="text-[15px] font-semibold tracking-tight text-white">Meridian</span>
         </div>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-neutral-400 p-1">
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-text-secondary hover:text-white p-2 rounded-lg hover:bg-background-tertiary transition-colors">
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
@@ -51,28 +51,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ── Sidebar ── */}
       <aside className={`
-        fixed md:sticky top-0 left-0 z-50 h-[100dvh] w-[220px] flex-shrink-0 
-        bg-[var(--color-background-primary)] border-r border-[var(--color-border-tertiary)] flex flex-col p-4
-        transition-transform duration-300 ease-in-out
+        fixed md:sticky top-0 left-0 z-50 h-[100dvh] w-[260px] flex-shrink-0 
+        bg-background-secondary border-r border-border-primary flex flex-col p-5
+        transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Logo (Desktop) */}
-        <div className="hidden md:flex items-center gap-2 px-2 mb-6">
-          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-            <Globe className="w-3.5 h-3.5 text-white" strokeWidth={2} />
+        <div className="hidden md:flex items-center gap-3 px-3 mb-8 mt-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-blue to-cyan-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-accent-blue/30">
+            <Globe className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[14px] font-medium text-white">Meridian</span>
+          <span className="text-[16px] font-bold tracking-tight text-white">Meridian</span>
         </div>
 
         {/* Close Button (Mobile) */}
-        <div className="md:hidden flex justify-end mb-4">
-           <button onClick={() => setMobileMenuOpen(false)} className="text-neutral-400 p-1 rounded-lg hover:bg-[#252525]">
+        <div className="md:hidden flex justify-end mb-6">
+           <button onClick={() => setMobileMenuOpen(false)} className="text-text-secondary p-2 rounded-lg hover:bg-background-tertiary transition-colors">
              <X className="w-5 h-5" />
            </button>
         </div>
 
         {/* Nav Links */}
-        <nav className="flex-1 flex flex-col gap-1">
+        <nav className="flex-1 flex flex-col gap-1.5">
            {navItems.map(item => {
              const active = pathname === item.href
              return (
@@ -80,14 +80,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                  key={item.href}
                  href={item.href}
                  onClick={() => setMobileMenuOpen(false)}
-                 className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors
+                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200
                    ${active 
-                     ? 'bg-[var(--color-background-info)] text-[var(--color-text-info)] font-medium' 
-                     : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-secondary)] hover:text-white'
+                     ? 'bg-accent-blue-subtle text-accent-blue' 
+                     : 'text-text-secondary hover:bg-background-tertiary/50 hover:text-white'
                    }
                  `}
                >
-                 <item.icon className="w-4 h-4" aria-hidden="true" />
+                 <item.icon className={`w-4 h-4 ${active ? 'text-accent-blue' : 'text-text-secondary'}`} aria-hidden="true" strokeWidth={active ? 2.5 : 2} />
                  {item.label}
                </Link>
              )
@@ -95,27 +95,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Footer Actions */}
-        <div className="border-t border-[var(--color-border-tertiary)] pt-3 flex flex-col gap-1">
+        <div className="border-t border-border-primary pt-4 mt-4 flex flex-col gap-1.5">
           <Link
             href="/settings"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] text-[var(--color-text-secondary)] hover:bg-[var(--color-background-secondary)] hover:text-white transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-text-secondary hover:bg-background-tertiary/50 hover:text-white transition-colors"
           >
-            <Settings className="w-4 h-4" aria-hidden="true" />
+            <Settings className="w-4 h-4 text-text-secondary" aria-hidden="true" />
             Configurações
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] text-[var(--color-text-danger)] hover:bg-[var(--color-background-danger)] text-left w-full transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-accent-rose hover:bg-accent-rose-subtle text-left w-full transition-colors"
           >
-            <LogOut className="w-4 h-4" aria-hidden="true" />
+            <LogOut className="w-4 h-4 text-accent-rose" aria-hidden="true" />
             Sair
           </button>
         </div>
       </aside>
 
       {/* ── Main content ── */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-x-hidden md:pt-0 pt-[60px]">
+      <main className="flex-1 flex flex-col min-h-screen overflow-x-hidden md:pt-0 pt-[72px]">
         {children}
       </main>
 

@@ -33,21 +33,21 @@ interface PageTopbarProps {
 export function PageTopbar({ title, subtitle, children, style }: PageTopbarProps) {
   return (
     <div 
-      className="flex items-center justify-between px-5 py-4 border-b border-neutral-800/60 shrink-0 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-10"
+      className="flex items-center justify-between px-6 py-5 border-b border-border-primary shrink-0 bg-background-primary/80 backdrop-blur-xl sticky top-0 z-10 shadow-sm"
       style={style}
     >
       <div>
-        <div className="text-[15px] font-medium text-white">
+        <h1 className="text-[18px] font-semibold tracking-tight text-text-primary">
           {title}
-        </div>
+        </h1>
         {subtitle && (
-          <div className="text-xs text-neutral-400 mt-0.5">
+          <p className="text-[13px] font-medium text-text-secondary mt-1">
             {subtitle}
-          </div>
+          </p>
         )}
       </div>
       {children && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {children}
         </div>
       )}

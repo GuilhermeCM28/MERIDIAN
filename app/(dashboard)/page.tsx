@@ -5,21 +5,20 @@ import { TipsPanel }          from '@/components/ai/TipsPanel'
 import { PageTopbar }         from '@/components/ui/PageTopbar'
 import Link                   from 'next/link'
 import { formatBRL, formatDate } from '@/lib/utils'
+import { Plus, TrendingUp, TrendingDown, Wallet, CreditCard, Sparkles, ArrowRight } from 'lucide-react'
 
 const CAT_COLORS: Record<string, string> = {
-  moradia:    '#2563eb',
-  alimentação:'#f59e0b',
-  transporte: '#8b5cf6',
-  lazer:      '#ec4899',
-  saúde:      '#10b981',
-  outros:     '#73726c',
+  moradia:    '#3b82f6', // blue
+  alimentação:'#f59e0b', // amber
+  transporte: '#8b5cf6', // violet
+  lazer:      '#ec4899', // pink
+  saúde:      '#10b981', // emerald
+  outros:     '#71717a', // zinc
 }
+
 function catColor(name: string, i: number) {
-  return CAT_COLORS[name.toLowerCase()] ?? ['#2563eb','#f59e0b','#8b5cf6','#ec4899','#10b981','#06b6d4','#f97316','#73726c'][i % 8]
+  return CAT_COLORS[name.toLowerCase()] ?? ['#3b82f6','#f59e0b','#8b5cf6','#ec4899','#10b981','#06b6d4','#f97316','#71717a'][i % 8]
 }
-
-
-
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -52,90 +51,115 @@ export default async function DashboardPage() {
     <>
       <PageTopbar
         title={<>Olá, {name} 👋</>}
-        subtitle={monthName}
+        subtitle={monthName.charAt(0).toUpperCase() + monthName.slice(1)}
       >
-        <Link
-          href="/transactions/new"
-          style={{
-            background:'#2563eb', color:'#fff', border:'none',
-            borderRadius:'var(--border-radius-md)', padding:'7px 14px',
-            fontSize:12, fontWeight:500, cursor:'pointer',
-            display:'flex', alignItems:'center', gap:5, textDecoration:'none',
-          }}
-        >
-          <i className="ti ti-plus" aria-hidden="true" />
+        <Link href="/transactions/new" className="btn-primary group">
+          <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
           Novo gasto
         </Link>
       </PageTopbar>
 
       {/* ── Content ── */}
-      <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
+      <div className="flex-1 p-5 md:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
 
-        {/* Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            { label:'Receita',  value: formatBRL(summary.total_income),   icon:'ti-trending-up',   color:'var(--color-text-success)' },
-            { label:'Gastos',   value: formatBRL(summary.total_expenses),  icon:'ti-trending-down', color:'var(--color-text-danger)'  },
-            { label:'Saldo',    value: formatBRL(summary.balance),          icon:'ti-wallet',        color: summary.balance >= 0 ? 'var(--color-text-success)' : 'var(--color-text-danger)' },
-          ].map(m => (
-            <div key={m.label} style={{ background:'var(--color-background-secondary)', borderRadius:'var(--border-radius-md)', padding:'12px 14px' }}>
-              <div style={{ fontSize:11, color:'var(--color-text-secondary)', marginBottom:5, display:'flex', alignItems:'center', gap:5 }}>
-                <i className={`ti ${m.icon}`} style={{ color: m.color }} aria-hidden="true" />
-                {m.label}
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="glass-card p-5 group hover:-translate-y-1">
+            <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-emerald-subtle flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-accent-emerald" />
               </div>
-              <div style={{ fontSize:20, fontWeight:500, color: m.color }}>{m.value}</div>
+              Receita
             </div>
-          ))}
+            <div className="text-[28px] font-bold tracking-tight text-text-primary group-hover:text-accent-emerald transition-colors">
+              {formatBRL(summary.total_income)}
+            </div>
+          </div>
+
+          <div className="glass-card p-5 group hover:-translate-y-1">
+            <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-rose-subtle flex items-center justify-center">
+                <TrendingDown className="w-4 h-4 text-accent-rose" />
+              </div>
+              Gastos
+            </div>
+            <div className="text-[28px] font-bold tracking-tight text-text-primary group-hover:text-accent-rose transition-colors">
+              {formatBRL(summary.total_expenses)}
+            </div>
+          </div>
+
+          <div className="glass-card p-5 group hover:-translate-y-1 relative overflow-hidden">
+            {/* Soft glow for balance */}
+            <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 ${summary.balance >= 0 ? 'bg-accent-emerald' : 'bg-accent-rose'}`} />
+            
+            <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3 relative z-10">
+              <div className="w-8 h-8 rounded-lg bg-background-tertiary flex items-center justify-center border border-border-primary">
+                <Wallet className="w-4 h-4 text-text-primary" />
+              </div>
+              Saldo
+            </div>
+            <div className={`text-[28px] font-bold tracking-tight relative z-10 transition-colors ${summary.balance >= 0 ? 'text-accent-emerald' : 'text-accent-rose'}`}>
+              {formatBRL(summary.balance)}
+            </div>
+          </div>
         </div>
 
         {/* Budget card */}
         {budget > 0 && (
-          <div className="page-card">
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-              <span style={{ fontSize:12, fontWeight:500, color:'var(--color-text-primary)' }}>Meta mensal de gastos</span>
-              <span style={{ fontSize:11, color:'var(--color-text-secondary)' }}>
-                {formatBRL(summary.total_expenses)} / {formatBRL(budget)}
+          <div className="glass-card p-6 border-l-4" style={{ borderLeftColor: pct >= 90 ? 'var(--color-accent-rose)' : pct >= 70 ? '#f59e0b' : 'var(--color-accent-emerald)' }}>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[14px] font-semibold text-text-primary">Meta mensal de gastos</span>
+              <span className="text-[13px] font-medium text-text-secondary">
+                <span className="text-text-primary">{formatBRL(summary.total_expenses)}</span> / {formatBRL(budget)}
               </span>
             </div>
-            <div style={{ height:7, background:'var(--color-background-secondary)', borderRadius:4, overflow:'hidden', margin:'8px 0 5px' }}>
-              <div style={{ height:7, borderRadius:4, background: pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#10b981', width:`${pct.toFixed(1)}%` }} />
+            <div className="h-2 bg-background-tertiary rounded-full overflow-hidden my-3">
+              <div 
+                className="h-full rounded-full transition-all duration-1000 ease-out" 
+                style={{ 
+                  background: pct >= 90 ? 'var(--color-accent-rose)' : pct >= 70 ? '#f59e0b' : 'var(--color-accent-emerald)', 
+                  width: `${pct}%` 
+                }} 
+              />
             </div>
-            <div style={{ display:'flex', justifyContent:'space-between' }}>
-              <span style={{ fontSize:11, color: pct >= 90 ? 'var(--color-text-danger)' : pct >= 70 ? '#f59e0b' : 'var(--color-text-success)' }}>
+            <div className="flex justify-between items-center mt-2">
+              <span className={`text-[12px] font-medium ${pct >= 90 ? 'text-accent-rose' : pct >= 70 ? 'text-amber-500' : 'text-accent-emerald'}`}>
                 {pct.toFixed(0)}% utilizado
               </span>
-              <span style={{ fontSize:11, color:'var(--color-text-secondary)' }}>{formatBRL(remaining)} restantes</span>
+              <span className="text-[12px] font-medium text-text-secondary">{formatBRL(remaining)} restantes</span>
             </div>
           </div>
         )}
 
         {/* Grid 3fr + 2fr — Chart | Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
 
           {/* Chart */}
-          <div className="page-card">
-            <div style={{ fontSize:13, fontWeight:500, color:'var(--color-text-primary)', marginBottom:12 }}>Evolução mensal</div>
-            <SpendingChart data={chart} />
+          <div className="glass-card p-6 flex flex-col">
+            <h3 className="text-[15px] font-semibold tracking-tight text-text-primary mb-6">Evolução mensal</h3>
+            <div className="flex-1 min-h-[250px]">
+              <SpendingChart data={chart} />
+            </div>
           </div>
 
           {/* Categories */}
-          <div className="page-card flex flex-col">
-            <div style={{ fontSize:13, fontWeight:500, color:'var(--color-text-primary)', marginBottom:12 }}>Por categoria</div>
-            <div>
+          <div className="glass-card p-6 flex flex-col">
+            <h3 className="text-[15px] font-semibold tracking-tight text-text-primary mb-6">Por categoria</h3>
+            <div className="flex-1 flex flex-col gap-4">
               {summary.by_category.length === 0 ? (
-                <p style={{ fontSize:12, color:'var(--color-text-tertiary)', textAlign:'center', padding:'16px 0' }}>
+                <div className="flex-1 flex items-center justify-center text-[13px] text-text-tertiary">
                   Nenhum gasto registrado
-                </p>
+                </div>
               ) : summary.by_category.map((c, i) => {
                 const color = catColor(c.category, i)
                 return (
-                  <div key={c.category} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:9 }}>
-                    <div style={{ width:8, height:8, borderRadius:'50%', background:color, flexShrink:0 }} />
-                    <span style={{ fontSize:11, color:'var(--color-text-secondary)', minWidth:72 }}>{c.category}</span>
-                    <div style={{ flex:1, height:4, background:'var(--color-background-secondary)', borderRadius:2 }}>
-                      <div style={{ height:4, borderRadius:2, background:color, width:`${c.pct}%` }} />
+                  <div key={c.category} className="flex items-center gap-3 group">
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-150" style={{ background: color }} />
+                    <span className="text-[13px] font-medium text-text-secondary min-w-[80px]">{c.category}</span>
+                    <div className="flex-1 h-1.5 bg-background-tertiary rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ background: color, width: `${c.pct}%` }} />
                     </div>
-                    <span style={{ fontSize:11, color:'var(--color-text-primary)', minWidth:62, textAlign:'right' }}>
+                    <span className="text-[13px] font-semibold text-text-primary min-w-[70px] text-right">
                       {formatBRL(c.amount)}
                     </span>
                   </div>
@@ -146,46 +170,56 @@ export default async function DashboardPage() {
         </div>
 
         {/* Grid 1fr + 1fr — Recent Transactions | AI Tips */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Recent Transactions */}
-          <div className="page-card">
-            <div style={{ fontSize:13, fontWeight:500, color:'var(--color-text-primary)', marginBottom:12, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              Transações recentes
-              <Link href="/transactions" style={{ fontSize:11, fontWeight:400, color:'var(--color-text-info)', textDecoration:'none' }}>Ver todas →</Link>
+          <div className="glass-card p-6 flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[15px] font-semibold tracking-tight text-text-primary">Transações recentes</h3>
+              <Link href="/transactions" className="text-[13px] font-medium text-accent-blue hover:text-accent-blue-hover flex items-center gap-1 group transition-colors">
+                Ver todas 
+                <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+              </Link>
             </div>
-            {txs.length === 0 ? (
-              <p style={{ fontSize:12, color:'var(--color-text-tertiary)', textAlign:'center', padding:'16px 0' }}>Nenhuma transação</p>
-            ) : txs.map(tx => (
-              <div key={tx.id} style={{ display:'flex', alignItems:'center', gap:9, padding:'7px 0', borderBottom:'0.5px solid var(--color-border-tertiary)' }}>
-                <div style={{ width:30, height:30, borderRadius:'var(--border-radius-md)', background:'var(--color-background-secondary)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, color:'var(--color-text-secondary)' }}>
-                  <i className={`ti ${tx.type === 'income' ? 'ti-trending-up' : 'ti-credit-card'}`} aria-hidden="true" />
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:12, color:'var(--color-text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tx.description}</div>
-                  <div style={{ fontSize:11, color:'var(--color-text-tertiary)', marginTop:1 }}>
-                    {tx.category?.name ?? '—'} · {formatDate(tx.date)}
+            <div className="flex flex-col">
+              {txs.length === 0 ? (
+                <div className="py-8 text-center text-[13px] text-text-tertiary">Nenhuma transação recente</div>
+              ) : txs.map((tx, i) => (
+                <div key={tx.id} className={`flex items-center gap-4 py-3 group ${i !== txs.length - 1 ? 'border-b border-border-primary/50' : ''}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${tx.type === 'income' ? 'bg-accent-emerald-subtle text-accent-emerald group-hover:bg-accent-emerald/20' : 'bg-background-tertiary border border-border-primary text-text-secondary group-hover:border-text-secondary'}`}>
+                    {tx.type === 'income' ? <TrendingUp className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-medium text-text-primary truncate">{tx.description}</div>
+                    <div className="text-[12px] font-medium text-text-tertiary mt-0.5 flex items-center gap-1.5">
+                      <span className="px-1.5 py-0.5 bg-background-tertiary rounded-md text-[10px] uppercase tracking-wider">{tx.category?.name ?? 'Outros'}</span>
+                      <span>·</span>
+                      <span>{formatDate(tx.date)}</span>
+                    </div>
+                  </div>
+                  <div className={`text-[14px] font-bold whitespace-nowrap ${tx.type === 'income' ? 'text-accent-emerald' : 'text-text-primary'}`}>
+                    {tx.type === 'income' ? '+' : '-'}{formatBRL(tx.amount)}
                   </div>
                 </div>
-                <span style={{ fontSize:12, fontWeight:500, marginLeft:'auto', whiteSpace:'nowrap', color: tx.type === 'income' ? 'var(--color-text-success)' : 'var(--color-text-primary)' }}>
-                  {tx.type === 'income' ? '+' : '-'}{formatBRL(tx.amount)}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* AI Tips */}
-          <div className="page-card">
-            <div style={{ fontSize:13, fontWeight:500, color:'var(--color-text-primary)', marginBottom:12, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <span style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <i className="ti ti-sparkles" style={{ color:'var(--color-text-info)' }} aria-hidden="true" />
+          <div className="glass-card p-6 flex flex-col relative overflow-hidden">
+            {/* Subtle AI background glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent-blue/10 blur-3xl rounded-full" />
+            
+            <div className="flex items-center justify-between mb-6 relative z-10">
+              <h3 className="text-[15px] font-semibold tracking-tight text-text-primary flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-accent-blue" />
                 Dicas da IA
-              </span>
-              <span style={{ fontSize:10, padding:'2px 7px', borderRadius:'var(--border-radius-md)', fontWeight:500, background:'var(--color-background-info)', color:'var(--color-text-info)' }}>
-                Claude
-              </span>
+              </h3>
+              <span className="badge badge-ai">Claude</span>
             </div>
-            <TipsPanel summary={summary} />
+            <div className="relative z-10 flex-1">
+              <TipsPanel summary={summary} />
+            </div>
           </div>
 
         </div>
