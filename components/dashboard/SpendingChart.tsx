@@ -10,10 +10,9 @@ import { DailyDrilldown } from './DailyDrilldown'
 import { ZoomIn } from 'lucide-react'
 
 interface MonthData {
-  month:    string   // ex: "mai."
+  month:    string
   income:   number
   expenses: number
-  /** "YYYY-MM" – injetado pela dashboard page para suportar o drill-down */
   monthKey?: string
 }
 
@@ -29,17 +28,22 @@ function fmt(value: number) {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-800 rounded-xl px-4 py-3 text-sm shadow-2xl">
-      <p className="text-neutral-400 mb-2 font-medium">{label}</p>
+    <div
+      className="backdrop-blur-xl rounded-xl px-4 py-3 text-sm shadow-2xl border"
+      style={{
+        background: 'var(--color-background-secondary)',
+        borderColor: 'var(--color-border-primary)',
+        color: 'var(--color-text-primary)',
+      }}
+    >
+      <p className="text-text-secondary mb-2 font-medium">{label}</p>
       {payload.map((p: any) => (
         <p key={p.name} style={{ color: p.fill }} className="mb-0.5 tabular-nums">
           {p.name === 'income' ? 'Receita' : 'Gastos'}:{' '}
-          <span className="font-semibold">
-            {formatBRL(Number(p.value))}
-          </span>
+          <span className="font-semibold">{formatBRL(Number(p.value))}</span>
         </p>
       ))}
-      <p className="text-[11px] text-neutral-500 mt-2 flex items-center gap-1">
+      <p className="text-[11px] text-text-tertiary mt-2 flex items-center gap-1">
         <ZoomIn className="w-3 h-3" /> Clique para ver por dia
       </p>
     </div>
@@ -49,7 +53,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function SpendingChart({ data }: SpendingChartProps) {
   const [drillMonth, setDrillMonth] = useState<string | null>(null)
 
-  // monthKey do item selecionado → ex: "2026-05"
   const selectedEntry = data.find(d => d.monthKey === drillMonth)
   const monthLabel = selectedEntry
     ? (() => {
@@ -61,26 +64,29 @@ export function SpendingChart({ data }: SpendingChartProps) {
 
   const handleChartClick = (chartData: any) => {
     if (!chartData?.activePayload) return
-    // Tenta obter o monthKey do ponto clicado via índice
     const idx = chartData.activeTooltipIndex ?? -1
     const entry = data[idx]
-    if (entry?.monthKey) {
-      setDrillMonth(entry.monthKey)
-    }
+    if (entry?.monthKey) setDrillMonth(entry.monthKey)
   }
 
   return (
     <>
-      <div className="bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 rounded-2xl p-5">
+      <div
+        className="rounded-2xl p-5 border"
+        style={{
+          background: 'var(--color-background-secondary)',
+          borderColor: 'var(--color-border-primary)',
+        }}
+      >
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="#a3a3a3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              stroke="var(--color-text-tertiary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 20V10M12 20V4M6 20v-6" />
             </svg>
-            <h3 className="text-sm font-medium text-neutral-200">Evolução mensal</h3>
+            <h3 className="text-sm font-medium text-text-primary">Evolução mensal</h3>
           </div>
-          <span className="flex items-center gap-1 text-[11px] text-neutral-600">
+          <span className="flex items-center gap-1 text-[11px] text-text-tertiary">
             <ZoomIn className="w-3 h-3" />
             Clique em um mês para detalhar
           </span>
@@ -120,24 +126,23 @@ export function SpendingChart({ data }: SpendingChartProps) {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ stroke: '#404040', strokeWidth: 1, strokeDasharray: '4 4' }}
+              cursor={{ stroke: 'var(--color-border-secondary)', strokeWidth: 1, strokeDasharray: '4 4' }}
             />
-            <Area type="monotone" dataKey="income"   stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)"   activeDot={{ r: 5, strokeWidth: 2, stroke: '#10b981', fill: '#111' }} />
-            <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorExpenses)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#ef4444', fill: '#111' }} />
+            <Area type="monotone" dataKey="income"   stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)"   activeDot={{ r: 5, strokeWidth: 2, stroke: '#10b981', fill: 'var(--color-background-secondary)' }} />
+            <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorExpenses)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#ef4444', fill: 'var(--color-background-secondary)' }} />
           </AreaChart>
         </ResponsiveContainer>
 
         <div className="flex items-center gap-5 mt-3 pl-1">
-          <span className="flex items-center gap-1.5 text-xs text-neutral-400">
+          <span className="flex items-center gap-1.5 text-xs text-text-secondary">
             <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />Receita
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-neutral-400">
+          <span className="flex items-center gap-1.5 text-xs text-text-secondary">
             <span className="w-2.5 h-2.5 rounded-sm bg-red-500" />Gastos
           </span>
         </div>
       </div>
 
-      {/* Drill-down modal */}
       {drillMonth && (
         <DailyDrilldown
           monthKey={drillMonth}

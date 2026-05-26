@@ -90,17 +90,42 @@ export default async function DashboardPage() {
 
           <div className="glass-card p-5 group hover:-translate-y-1 relative overflow-hidden">
             {/* Soft glow for balance */}
-            <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 ${summary.balance >= 0 ? 'bg-accent-emerald' : 'bg-accent-rose'}`} />
-            
+            {summary.balance >= 0
+              ? <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 bg-accent-emerald" />
+              : <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 bg-accent-rose" />
+            }
+
             <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3 relative z-10">
-              <div className="w-8 h-8 rounded-lg bg-background-tertiary flex items-center justify-center border border-border-primary">
-                <Wallet className="w-4 h-4 text-text-primary" />
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-colors ${
+                summary.balance >= 0
+                  ? 'bg-accent-emerald-subtle border-accent-emerald/20'
+                  : 'bg-accent-rose-subtle border-accent-rose/20'
+              }`}>
+                <Wallet className={`w-4 h-4 ${
+                  summary.balance >= 0 ? 'text-accent-emerald' : 'text-accent-rose'
+                }`} />
               </div>
               Saldo
+              {/* Indicador pulsante quando negativo */}
+              {summary.balance < 0 && (
+                <span className="ml-auto flex items-center gap-1 text-[11px] font-semibold text-accent-rose">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-rose opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-rose" />
+                  </span>
+                  Negativo
+                </span>
+              )}
             </div>
-            <div className={`text-[28px] font-bold tracking-tight relative z-10 transition-colors ${summary.balance >= 0 ? 'text-accent-emerald' : 'text-accent-rose'}`}>
-              {formatBRL(summary.balance)}
-            </div>
+
+            {summary.balance >= 0
+              ? <div className="text-[28px] font-bold tracking-tight relative z-10 transition-colors text-accent-emerald">
+                  {formatBRL(summary.balance)}
+                </div>
+              : <div className="text-[28px] font-bold tracking-tight relative z-10 transition-colors text-accent-rose">
+                  {formatBRL(summary.balance)}
+                </div>
+            }
           </div>
         </div>
 
