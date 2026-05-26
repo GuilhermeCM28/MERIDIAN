@@ -1,15 +1,20 @@
 'use client'
 
+import { useState } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { formatBRL } from '@/lib/utils'
+import { DailyDrilldown } from './DailyDrilldown'
+import { ZoomIn } from 'lucide-react'
 
 interface MonthData {
-  month:    string
+  month:    string   // ex: "mai."
   income:   number
   expenses: number
+  /** "YYYY-MM" – injetado pela dashboard page para suportar o drill-down */
+  monthKey?: string
 }
 
 interface SpendingChartProps {
@@ -34,62 +39,112 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           </span>
         </p>
       ))}
+      <p className="text-[11px] text-neutral-500 mt-2 flex items-center gap-1">
+        <ZoomIn className="w-3 h-3" /> Clique para ver por dia
+      </p>
     </div>
   )
 }
 
 export function SpendingChart({ data }: SpendingChartProps) {
+  const [drillMonth, setDrillMonth] = useState<string | null>(null)
+
+  // monthKey do item selecionado → ex: "2026-05"
+  const selectedEntry = data.find(d => d.monthKey === drillMonth)
+  const monthLabel = selectedEntry
+    ? (() => {
+        const [y, m] = drillMonth!.split('-')
+        return new Date(Number(y), Number(m) - 1, 1)
+          .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      })()
+    : ''
+
+  const handleChartClick = (chartData: any) => {
+    if (!chartData?.activePayload) return
+    // Tenta obter o monthKey do ponto clicado via índice
+    const idx = chartData.activeTooltipIndex ?? -1
+    const entry = data[idx]
+    if (entry?.monthKey) {
+      setDrillMonth(entry.monthKey)
+    }
+  }
+
   return (
-    <div className="bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 rounded-2xl p-5">
-      <div className="flex items-center gap-2 mb-5">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-          stroke="#a3a3a3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 20V10M12 20V4M6 20v-6" />
-        </svg>
-        <h3 className="text-sm font-medium text-neutral-200">Evolução mensal</h3>
+    <>
+      <div className="bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="#a3a3a3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 20V10M12 20V4M6 20v-6" />
+            </svg>
+            <h3 className="text-sm font-medium text-neutral-200">Evolução mensal</h3>
+          </div>
+          <span className="flex items-center gap-1 text-[11px] text-neutral-600">
+            <ZoomIn className="w-3 h-3" />
+            Clique em um mês para detalhar
+          </span>
+        </div>
+
+        <ResponsiveContainer width="100%" height={200}>
+          <AreaChart
+            data={data}
+            margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+            onClick={handleChartClick}
+            style={{ cursor: 'pointer' }}
+          >
+            <defs>
+              <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#10b981" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+              </linearGradient>
+              <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" strokeDasharray="4 4" />
+            <XAxis
+              dataKey="month"
+              tick={{ fill: 'var(--color-chart-tick)', fontSize: 12 }}
+              axisLine={false}
+              tickLine={false}
+              tickMargin={10}
+            />
+            <YAxis
+              tickFormatter={fmt}
+              tick={{ fill: 'var(--color-chart-tick)', fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              width={60}
+            />
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ stroke: '#404040', strokeWidth: 1, strokeDasharray: '4 4' }}
+            />
+            <Area type="monotone" dataKey="income"   stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)"   activeDot={{ r: 5, strokeWidth: 2, stroke: '#10b981', fill: '#111' }} />
+            <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorExpenses)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#ef4444', fill: '#111' }} />
+          </AreaChart>
+        </ResponsiveContainer>
+
+        <div className="flex items-center gap-5 mt-3 pl-1">
+          <span className="flex items-center gap-1.5 text-xs text-neutral-400">
+            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />Receita
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-neutral-400">
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-500" />Gastos
+          </span>
+        </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-          <defs>
-            <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-            </linearGradient>
-            <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid vertical={false} stroke="#262626" strokeDasharray="4 4" />
-          <XAxis
-            dataKey="month"
-            tick={{ fill: '#737373', fontSize: 12 }}
-            axisLine={false}
-            tickLine={false}
-            tickMargin={10}
-          />
-          <YAxis
-            tickFormatter={fmt}
-            tick={{ fill: '#737373', fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-            width={60}
-          />
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#404040', strokeWidth: 1, strokeDasharray: '4 4' }} />
-          <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
-          <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorExpenses)" />
-        </AreaChart>
-      </ResponsiveContainer>
-
-      <div className="flex items-center gap-5 mt-3 pl-1">
-        <span className="flex items-center gap-1.5 text-xs text-neutral-400">
-          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />Receita
-        </span>
-        <span className="flex items-center gap-1.5 text-xs text-neutral-400">
-          <span className="w-2.5 h-2.5 rounded-sm bg-red-500" />Gastos
-        </span>
-      </div>
-    </div>
+      {/* Drill-down modal */}
+      {drillMonth && (
+        <DailyDrilldown
+          monthKey={drillMonth}
+          monthLabel={monthLabel}
+          onClose={() => setDrillMonth(null)}
+        />
+      )}
+    </>
   )
 }

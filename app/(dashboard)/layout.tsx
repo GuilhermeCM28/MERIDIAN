@@ -5,6 +5,7 @@ import Link      from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Globe, LayoutDashboard, ArrowRightLeft, Target, BarChart3, Sparkles, Settings, LogOut, Menu, X } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const navItems = [
   { href: '/',             icon: LayoutDashboard, label: 'Visão geral'  },
@@ -104,6 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Settings className="w-4 h-4 text-text-secondary" aria-hidden="true" />
             Configurações
           </Link>
+          <ThemeToggle sidebar />
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-accent-rose hover:bg-accent-rose-subtle text-left w-full transition-colors"

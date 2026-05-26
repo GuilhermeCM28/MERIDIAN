@@ -56,7 +56,8 @@ export const getMonthSummary = cache(async (
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface ChartMonthData {
-  month:    string  // ex: "mai"
+  month:    string  // ex: "mai."
+  monthKey: string  // ex: "2026-05" — usado para drill-down diário
   income:   number
   expenses: number
 }
@@ -107,6 +108,7 @@ export const getChartDataBulk = cache(async (
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     return {
       month:    d.toLocaleDateString('pt-BR', { month: 'short' }),
+      monthKey: key,
       income:   byMonth[key]?.income   ?? 0,
       expenses: byMonth[key]?.expenses ?? 0,
     }

@@ -1,27 +1,88 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background-primary: #0a0a0b;
+/* ─── Design Tokens (dark – default) ─────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --color-background-primary:   #0a0a0b;
   --color-background-secondary: #121214;
-  --color-background-tertiary: #18181b;
-  
-  --color-border-primary: #27272a;
+  --color-background-tertiary:  #18181b;
+
+  --color-border-primary:   #27272a;
   --color-border-secondary: #3f3f46;
 
-  --color-text-primary: #f4f4f5;
+  --color-text-primary:   #f4f4f5;
   --color-text-secondary: #a1a1aa;
-  --color-text-tertiary: #71717a;
+  --color-text-tertiary:  #71717a;
 
-  --color-accent-blue: #3b82f6;
-  --color-accent-blue-hover: #2563eb;
-  --color-accent-blue-subtle: rgba(59, 130, 246, 0.1);
+  --color-accent-blue:         #3b82f6;
+  --color-accent-blue-hover:   #2563eb;
+  --color-accent-blue-subtle:  rgba(59, 130, 246, 0.1);
 
-  --color-accent-emerald: #10b981;
+  --color-accent-emerald:        #10b981;
   --color-accent-emerald-subtle: rgba(16, 185, 129, 0.1);
 
-  --color-accent-rose: #f43f5e;
+  --color-accent-rose:        #f43f5e;
   --color-accent-rose-subtle: rgba(244, 63, 94, 0.1);
-  
+
+  /* chart / misc */
+  --color-chart-grid:    #262626;
+  --color-chart-tick:    #737373;
+  --shadow-card:         0 4px 24px rgba(0,0,0,0.4);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ─── Light theme ─────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --color-background-primary:   #f8f8fa;
+  --color-background-secondary: #ffffff;
+  --color-background-tertiary:  #f1f1f5;
+
+  --color-border-primary:   #e4e4e7;
+  --color-border-secondary: #d1d1d6;
+
+  --color-text-primary:   #09090b;
+  --color-text-secondary: #52525b;
+  --color-text-tertiary:  #71717a;
+
+  --color-accent-blue:         #2563eb;
+  --color-accent-blue-hover:   #1d4ed8;
+  --color-accent-blue-subtle:  rgba(37, 99, 235, 0.08);
+
+  --color-accent-emerald:        #059669;
+  --color-accent-emerald-subtle: rgba(5, 150, 105, 0.08);
+
+  --color-accent-rose:        #e11d48;
+  --color-accent-rose-subtle: rgba(225, 29, 72, 0.08);
+
+  --color-chart-grid: #e4e4e7;
+  --color-chart-tick: #a1a1aa;
+  --shadow-card:      0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* ─── Tailwind theme tokens (referência Tailwind → CSS var) ──────────────── */
+@theme {
+  --color-background-primary:   var(--color-background-primary);
+  --color-background-secondary: var(--color-background-secondary);
+  --color-background-tertiary:  var(--color-background-tertiary);
+
+  --color-border-primary:   var(--color-border-primary);
+  --color-border-secondary: var(--color-border-secondary);
+
+  --color-text-primary:   var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary:  var(--color-text-tertiary);
+
+  --color-accent-blue:         var(--color-accent-blue);
+  --color-accent-blue-hover:   var(--color-accent-blue-hover);
+  --color-accent-blue-subtle:  var(--color-accent-blue-subtle);
+
+  --color-accent-emerald:        var(--color-accent-emerald);
+  --color-accent-emerald-subtle: var(--color-accent-emerald-subtle);
+
+  --color-accent-rose:        var(--color-accent-rose);
+  --color-accent-rose-subtle: var(--color-accent-rose-subtle);
+
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -29,6 +90,7 @@
   * {
     box-sizing: border-box;
     border-color: var(--color-border-primary);
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
   }
   html {
     min-height: 100%;
@@ -44,65 +106,59 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  
-  /* Scrollbar Customization */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-border-secondary);
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-tertiary);
-  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar       { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-tertiary); }
 }
 
 @layer components {
   .glass-panel {
     @apply bg-background-secondary/60 backdrop-blur-md border border-border-primary rounded-xl;
   }
-  
+
   .glass-card {
-    @apply bg-background-secondary border border-border-primary rounded-xl shadow-lg shadow-black/20 transition-all duration-300;
+    background-color: var(--color-background-secondary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s ease;
   }
-  
+
   .btn-primary {
     @apply bg-accent-blue text-white font-medium rounded-lg px-4 py-2 flex items-center justify-center gap-2 hover:bg-accent-blue-hover transition-colors shadow-sm shadow-accent-blue/20;
   }
-  
+
   .badge {
     @apply px-2 py-0.5 rounded-md text-[11px] font-medium inline-flex items-center;
   }
-  
+
   .badge-income {
     @apply bg-accent-emerald-subtle text-accent-emerald border border-accent-emerald/20;
   }
-  
+
   .badge-expense {
     @apply bg-accent-rose-subtle text-accent-rose border border-accent-rose/20;
   }
-  
+
   .badge-ai {
     @apply bg-accent-blue-subtle text-accent-blue border border-accent-blue/20;
   }
-  
+
   .table {
     @apply w-full text-left text-sm border-collapse;
   }
-  
+
   .table th {
     @apply text-text-secondary font-medium px-4 py-3 border-b border-border-primary text-xs uppercase tracking-wider;
   }
-  
+
   .table td {
     @apply px-4 py-3 border-b border-border-primary text-text-primary transition-colors group-hover:bg-background-tertiary/50;
   }
-  
+
   .table tr {
     /* group needs to be applied directly in HTML */
   }
