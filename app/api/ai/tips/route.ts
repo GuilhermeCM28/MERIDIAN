@@ -92,7 +92,7 @@ Retorne APENAS um JSON válido, sem texto adicional, sem markdown, no formato:
 `
 
     const message = await anthropic.messages.create({
-      model:      'claude-3-haiku-20240307',
+      model:      'claude-opus-4-7',
       max_tokens: 1024,
       messages:   [{ role: 'user', content: prompt }],
     })

@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { anthropic } from '@/lib/anthropic'
 import { createClient } from '@/lib/supabase/server'
-import { getMonthSummary } from '@/lib/supabase/queries'
 import { checkRateLimit, AI_RATE_LIMIT } from '@/lib/rate-limit'
+import { lastDayOfMonth } from '@/lib/utils'
 
-// ── Schema de validação ───────────────────────────────────────────────────────
+// ── Schema ────────────────────────────────────────────────────────────────────
 
 const MessageSchema = z.object({
   role:    z.enum(['user', 'assistant']),
@@ -13,87 +13,117 @@ const MessageSchema = z.object({
 })
 
 const RequestSchema = z.object({
-  // Limita histórico a 20 mensagens para evitar payloads gigantes
   messages: z.array(MessageSchema).min(1).max(20),
 })
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
-  // 1. Verificar autenticação
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
-  }
-
-  // 2. Rate limiting por usuário (janela compartilhada com /api/ai/tips)
-  const rl = checkRateLimit(`chat:${user.id}`, AI_RATE_LIMIT)
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: 'Muitas requisições. Tente novamente em instantes.' },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit':     String(AI_RATE_LIMIT.limit),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset':     String(Math.ceil(rl.resetAt / 1000)),
-          'Retry-After':           String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
-        },
-      }
-    )
-  }
-
-  // 3. Validar body
-  const raw = await req.json().catch(() => null)
-  const parsed = RequestSchema.safeParse(raw)
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Dados inválidos.', details: parsed.error.flatten() },
-      { status: 400 }
-    )
-  }
-
-  const { messages } = parsed.data
-
   try {
-    // Buscar contexto financeiro do usuário (reutiliza client já instanciado)
-    const now     = new Date()
-    const summary = await getMonthSummary(user.id, now.getFullYear(), now.getMonth() + 1, supabase)
+    // 1. Autenticação
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    const categoriesText = summary.by_category
-      .map(c => `  - ${c.category}: R$ ${c.amount.toFixed(2)} (${c.pct}%)`)
-      .join('\n')
+    if (authError || !user) {
+      console.error('[chat] auth error:', authError)
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
+    }
 
-    const systemPrompt = `Você é o assistente financeiro pessoal do app Meridian, especialista em finanças pessoais brasileiras.
-Você tem acesso ao resumo financeiro atual do usuário e deve responder de forma amigável, direta e personalizada em português.
+    // 2. Rate limiting
+    const rl = checkRateLimit(`chat:${user.id}`, AI_RATE_LIMIT)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Muitas requisições. Aguarde um momento.' },
+        { status: 429 }
+      )
+    }
 
-📊 Situação financeira atual (${now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}):
-- Receita total: R$ ${summary.total_income.toFixed(2)}
-- Gastos totais: R$ ${summary.total_expenses.toFixed(2)}
-- Saldo: R$ ${summary.balance.toFixed(2)}
-- Gastos por categoria:
-${categoriesText || '  - Nenhum gasto registrado este mês'}
+    // 3. Validar body
+    const raw = await req.json().catch(() => null)
+    const parsed = RequestSchema.safeParse(raw)
+    if (!parsed.success) {
+      console.error('[chat] validation error:', parsed.error.flatten())
+      return NextResponse.json(
+        { error: 'Payload inválido.', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
 
-Seja conciso, prático e use emojis com moderação. Evite respostas genéricas — use os dados acima para personalizar seus conselhos.`
+    const { messages } = parsed.data
 
-    const response = await anthropic.messages.create({
-      model:      'claude-3-haiku-20240307',
-      max_tokens: 1024,
-      system:     systemPrompt,
-      messages:   messages.map(m => ({ role: m.role, content: m.content })),
+    // 4. Garantir que começa com mensagem do usuário (regra da API Anthropic)
+    const apiMessages = messages[0]?.role === 'assistant'
+      ? messages.slice(1)
+      : messages
+
+    if (apiMessages.length === 0 || apiMessages[0]?.role !== 'user') {
+      return NextResponse.json(
+        { error: 'A primeira mensagem deve ser do usuário.' },
+        { status: 400 }
+      )
+    }
+
+    // 5. Buscar resumo financeiro diretamente (sem cache() do React)
+    const now   = new Date()
+    const year  = now.getFullYear()
+    const month = now.getMonth() + 1
+    const from  = `${year}-${String(month).padStart(2, '0')}-01`
+    const to    = lastDayOfMonth(year, month)
+
+    const { data: txData } = await supabase
+      .from('transactions')
+      .select('amount, type, category:categories(name)')
+      .eq('user_id', user.id)
+      .gte('date', from)
+      .lte('date', to)
+
+    const income   = txData?.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0) ?? 0
+    const expenses = txData?.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0) ?? 0
+
+    type CategoryJoin = { name: string } | { name: string }[] | null
+    const byCat: Record<string, number> = {}
+    txData?.filter(t => t.type === 'expense').forEach(t => {
+      const cat = t.category as CategoryJoin
+      const name = (Array.isArray(cat) ? cat[0]?.name : cat?.name) ?? 'Outros'
+      byCat[name] = (byCat[name] ?? 0) + t.amount
     })
 
-    const reply = response.content[0].type === 'text' ? response.content[0].text : ''
+    const categoriesText = Object.entries(byCat)
+      .map(([cat, amt]) => `  - ${cat}: R$ ${amt.toFixed(2)}`)
+      .join('\n') || '  - Nenhum gasto registrado este mês'
+
+    const monthLabel = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+
+    const systemPrompt = `Você é o assistente financeiro pessoal do app Meridian, especialista em finanças pessoais brasileiras.
+Responda sempre em português de forma amigável, direta e personalizada.
+
+📊 Situação financeira do usuário em ${monthLabel}:
+- Receita total: R$ ${income.toFixed(2)}
+- Gastos totais: R$ ${expenses.toFixed(2)}
+- Saldo: R$ ${(income - expenses).toFixed(2)}
+- Gastos por categoria:
+${categoriesText}
+
+Seja conciso e prático. Use os dados acima para personalizar seus conselhos. Use emojis com moderação.`
+
+    // 6. Chamar API da Anthropic
+    const response = await anthropic.messages.create({
+      model:      'claude-opus-4-7',
+      max_tokens: 1024,
+      system:     systemPrompt,
+      messages:   apiMessages.map(m => ({ role: m.role, content: m.content })),
+    })
+
+    const reply = response.content[0]?.type === 'text' ? response.content[0].text : ''
 
     return NextResponse.json({ reply }, {
       headers: { 'X-RateLimit-Remaining': String(rl.remaining) },
     })
-  } catch (error) {
-    console.error('Erro no chat de IA:', error)
+
+  } catch (error: any) {
+    console.error('[chat] unexpected error:', error?.message ?? error)
     return NextResponse.json(
-      { error: 'Não foi possível processar sua mensagem.' },
+      { error: 'Erro interno. Tente novamente.' },
       { status: 500 }
     )
   }

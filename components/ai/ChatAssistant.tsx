@@ -35,13 +35,11 @@ export default function ChatAssistant() {
     setLoading(true)
 
     try {
-      // A API da Anthropic exige que a primeira mensagem seja do 'user'.
-      // Filtramos a mensagem de boas-vindas (assistant) antes de enviar.
-      const historyForApi = newHistory.filter((_, idx) => {
-        // Remove a primeira mensagem se ela for do assistente (welcome message)
-        if (idx === 0 && newHistory[0].role === 'assistant') return false
-        return true
-      })
+      // Filtra a welcome message (role: 'assistant') — Anthropic exige que
+      // a primeira mensagem seja sempre do usuário.
+      const historyForApi = newHistory[0]?.role === 'assistant'
+        ? newHistory.slice(1)
+        : newHistory
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -50,15 +48,25 @@ export default function ChatAssistant() {
       })
 
       const data = await res.json()
-      const reply: Message = {
-        role: 'assistant',
-        content: data.reply ?? 'Desculpe, não consegui processar sua mensagem.',
+
+      if (!res.ok) {
+        // Mostra o erro real retornado pela API
+        const errMsg = data?.error ?? `Erro ${res.status}`
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `❌ ${errMsg}`,
+        }])
+        return
       }
-      setMessages(prev => [...prev, reply])
+
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.reply ?? 'Resposta vazia. Tente novamente.',
+      }])
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: '❌ Erro de conexão. Tente novamente.',
+        content: '❌ Erro de conexão. Verifique sua internet e tente novamente.',
       }])
     } finally {
       setLoading(false)
