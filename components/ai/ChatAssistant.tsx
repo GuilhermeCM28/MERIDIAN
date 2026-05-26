@@ -35,10 +35,18 @@ export default function ChatAssistant() {
     setLoading(true)
 
     try {
+      // A API da Anthropic exige que a primeira mensagem seja do 'user'.
+      // Filtramos a mensagem de boas-vindas (assistant) antes de enviar.
+      const historyForApi = newHistory.filter((_, idx) => {
+        // Remove a primeira mensagem se ela for do assistente (welcome message)
+        if (idx === 0 && newHistory[0].role === 'assistant') return false
+        return true
+      })
+
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newHistory }),
+        body: JSON.stringify({ messages: historyForApi }),
       })
 
       const data = await res.json()
