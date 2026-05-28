@@ -7,16 +7,35 @@ import { lastDayOfMonth } from '@/lib/utils'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
-const MessageSchema = z.object({
-  role:    z.enum(['user', 'assistant']),
-  content: z.string().min(1).max(4000),
-})
-
 const RequestSchema = z.object({
-  messages: z.array(MessageSchema).min(1).max(20),
+  message: z.string().min(1).max(4000),
 })
 
 // ── Handler ───────────────────────────────────────────────────────────────────
+
+export async function GET() {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
+    }
+
+    const { data, error } = await supabase
+      .from('ai_chat_messages')
+      .select('role, content')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+
+    return NextResponse.json({ messages: data })
+  } catch (error: any) {
+    console.error('[chat] history error:', error?.message ?? error)
+    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 })
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -49,18 +68,29 @@ export async function POST(req: Request) {
       )
     }
 
-    const { messages } = parsed.data
+    const { message } = parsed.data
 
-    // 4. Garantir que começa com mensagem do usuário (regra da API Anthropic)
-    const apiMessages = messages[0]?.role === 'assistant'
-      ? messages.slice(1)
-      : messages
+    // 4. Salvar mensagem do usuário
+    await supabase.from('ai_chat_messages').insert({
+      user_id: user.id,
+      role: 'user',
+      content: message
+    })
 
-    if (apiMessages.length === 0 || apiMessages[0]?.role !== 'user') {
-      return NextResponse.json(
-        { error: 'A primeira mensagem deve ser do usuário.' },
-        { status: 400 }
-      )
+    // Buscar histórico para contexto (últimas 10 mensagens)
+    const { data: history } = await supabase
+      .from('ai_chat_messages')
+      .select('role, content')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    const apiMessages = (history || [])
+      .reverse()
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+
+    if (apiMessages.length > 0 && apiMessages[0].role === 'assistant') {
+      apiMessages.shift() // Anthropic exige que a primeira seja 'user'
     }
 
     // 5. Buscar resumo financeiro diretamente (sem cache() do React)
@@ -121,6 +151,14 @@ REGRAS DE SEGURANÇA (NUNCA VIOLE):
     })
 
     const reply = response.content[0]?.type === 'text' ? response.content[0].text : ''
+
+    if (reply) {
+      await supabase.from('ai_chat_messages').insert({
+        user_id: user.id,
+        role: 'assistant',
+        content: reply
+      })
+    }
 
     return NextResponse.json({ reply }, {
       headers: { 'X-RateLimit-Remaining': String(rl.remaining) },

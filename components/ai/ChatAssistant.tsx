@@ -15,11 +15,32 @@ const WELCOME_MESSAGE: Message = {
 }
 
 export default function ChatAssistant() {
-  const [messages,  setMessages]  = useState<Message[]>([WELCOME_MESSAGE])
+  const [messages,  setMessages]  = useState<Message[]>([])
   const [input,     setInput]     = useState('')
   const [loading,   setLoading]   = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
   const bottomRef   = useRef<HTMLDivElement>(null)
   const inputRef    = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/ai/chat')
+        const data = await res.json()
+        if (data.messages && data.messages.length > 0) {
+          setMessages(data.messages)
+        } else {
+          setMessages([WELCOME_MESSAGE])
+        }
+      } catch (error) {
+        console.error('Failed to load history', error)
+        setMessages([WELCOME_MESSAGE])
+      } finally {
+        setIsInitializing(false)
+      }
+    }
+    loadHistory()
+  }, [])
 
   // Auto-scroll para o final ao receber nova mensagem
   useEffect(() => {
@@ -37,16 +58,10 @@ export default function ChatAssistant() {
     setLoading(true)
 
     try {
-      // Filtra a welcome message (role: 'assistant') — Anthropic exige que
-      // a primeira mensagem seja sempre do usuário.
-      const historyForApi = newHistory[0]?.role === 'assistant'
-        ? newHistory.slice(1)
-        : newHistory
-
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: historyForApi }),
+        body: JSON.stringify({ message: text }),
       })
 
       const data = await res.json()
@@ -87,8 +102,13 @@ export default function ChatAssistant() {
     <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[700px]">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 pb-4 pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700">
-        {messages.map((msg, i) => (
-          <div
+        {isInitializing ? (
+          <div className="flex justify-center items-center h-full text-neutral-500 text-sm">
+            Carregando histórico...
+          </div>
+        ) : (
+          messages.map((msg, i) => (
+            <div
             key={i}
             className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
           >
@@ -131,7 +151,7 @@ export default function ChatAssistant() {
               </ReactMarkdown>
             </div>
           </div>
-        ))}
+        )))}
 
         {/* Loading dots */}
         {loading && (

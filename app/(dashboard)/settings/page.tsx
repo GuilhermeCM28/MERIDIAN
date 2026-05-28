@@ -6,11 +6,13 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { PageTopbar } from '@/components/ui/PageTopbar'
+import { RefreshCw } from 'lucide-react'
 
 interface Category {
   id: string
   name: string
   color: string | null
+  monthly_limit: number | null
 }
 
 const PRESET_COLORS = [
@@ -35,6 +37,10 @@ export default function SettingsPage() {
   const [catSaving,     setCatSaving]     = useState(false)
   const [catMsg,        setCatMsg]        = useState<{ ok: boolean; text: string } | null>(null)
 
+  // Recorrentes
+  const [recurringProcessing, setRecurringProcessing] = useState(false)
+  const [recurringMsg,        setRecurringMsg]        = useState<{ ok: boolean; text: string } | null>(null)
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -42,7 +48,7 @@ export default function SettingsPage() {
 
       const [profileRes, catsRes] = await Promise.all([
         supabase.from('profiles').select('name, monthly_budget').eq('id', user.id).single(),
-        supabase.from('categories').select('id, name, color').order('name'),
+        supabase.from('categories').select('id, name, color, monthly_limit').order('name'),
       ])
 
       if (profileRes.data) {
@@ -87,7 +93,7 @@ export default function SettingsPage() {
     const { data, error } = await supabase
       .from('categories')
       .insert({ name: newCatName.trim(), color: newCatColor, user_id: user.id })
-      .select('id, name, color')
+      .select('id, name, color, monthly_limit')
       .single()
 
     if (error) {
@@ -105,6 +111,36 @@ export default function SettingsPage() {
     if (!error) {
       setCategories(prev => prev.filter(c => c.id !== id))
     }
+  }
+
+  async function updateCategoryLimit(id: string, value: string) {
+    const limit = value === '' ? null : parseFloat(value)
+    const { error } = await supabase
+      .from('categories')
+      .update({ monthly_limit: limit })
+      .eq('id', id)
+    if (!error) {
+      setCategories(prev => prev.map(c => c.id === id ? { ...c, monthly_limit: limit } : c))
+    }
+  }
+
+  async function processRecurring() {
+    setRecurringProcessing(true)
+    setRecurringMsg(null)
+    try {
+      const res = await fetch('/api/recurring/process', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Erro desconhecido')
+      if (json.processed === 0) {
+        setRecurringMsg({ ok: true, text: 'Nenhuma transação recorrente vencida.' })
+      } else {
+        setRecurringMsg({ ok: true, text: `${json.processed} transação(ões) processada(s): ${json.transactions.join(', ')}` })
+        router.refresh()
+      }
+    } catch (e: any) {
+      setRecurringMsg({ ok: false, text: e.message })
+    }
+    setRecurringProcessing(false)
   }
 
   const inputStyle = {
@@ -305,6 +341,25 @@ export default function SettingsPage() {
                       }}
                     />
                     <span style={{ fontSize: 13, color: 'var(--color-text-primary)', flex: 1 }}>{cat.name}</span>
+                    {/* Limite mensal */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', whiteSpace: 'nowrap' }}>Limite R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="—"
+                        defaultValue={cat.monthly_limit ?? ''}
+                        onBlur={e => updateCategoryLimit(cat.id, e.target.value)}
+                        style={{
+                          width: 80, background: 'var(--color-background-primary)',
+                          border: '0.5px solid var(--color-border-tertiary)',
+                          borderRadius: 'var(--border-radius-sm)', padding: '3px 6px',
+                          fontSize: 12, color: 'var(--color-text-primary)', outline: 'none',
+                        }}
+                        onFocus={e => e.target.style.borderColor = 'var(--color-border-info)'}
+                      />
+                    </div>
                     <button
                       onClick={() => deleteCategory(cat.id)}
                       style={{
@@ -325,6 +380,49 @@ export default function SettingsPage() {
                 ))}
               </div>
             )}
+          </section>
+
+          {/* ── Transações Recorrentes ────────────────────── */}
+          <section style={{
+            background: 'var(--color-background-secondary)',
+            borderRadius: 'var(--border-radius-lg)',
+            border: '0.5px solid var(--color-border-tertiary)',
+            padding: '20px'
+          }}>
+            <h2 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <RefreshCw style={{ width: 14, height: 14, color: 'var(--color-text-secondary)' }} />
+              Transações Recorrentes
+            </h2>
+            <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
+              Processa automaticamente todas as transações recorrentes cujo vencimento já chegou, duplicando-as no histórico.
+            </p>
+
+            {recurringMsg && (
+              <div style={{
+                fontSize: 12, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', marginBottom: 16,
+                border: `0.5px solid ${recurringMsg.ok ? 'var(--color-text-success)' : 'var(--color-text-danger)'}`,
+                background: recurringMsg.ok ? 'var(--color-background-success)' : 'var(--color-background-danger)',
+                color: recurringMsg.ok ? 'var(--color-text-success)' : 'var(--color-text-danger)'
+              }}>
+                {recurringMsg.text}
+              </div>
+            )}
+
+            <button
+              onClick={processRecurring}
+              disabled={recurringProcessing}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#2563eb', color: '#fff', border: 'none',
+                borderRadius: 'var(--border-radius-md)', padding: '8px 16px',
+                fontSize: 13, fontWeight: 500,
+                cursor: recurringProcessing ? 'not-allowed' : 'pointer',
+                opacity: recurringProcessing ? 0.6 : 1, transition: '0.2s'
+              }}
+            >
+              <RefreshCw style={{ width: 13, height: 13, animation: recurringProcessing ? 'spin 1s linear infinite' : 'none' }} />
+              {recurringProcessing ? 'Processando…' : 'Processar recorrentes'}
+            </button>
           </section>
 
         </div>

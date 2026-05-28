@@ -39,6 +39,15 @@ async function ReportContent({ searchParams }: { searchParams: SearchParams }) {
     .lte('date', to)
     .order('date', { ascending: false })
 
+  const { data: categoriesData } = await supabase
+    .from('categories')
+    .select('name, monthly_limit')
+    .eq('user_id', user.id)
+
+  // Build category limits map
+  const categoryLimits: Record<string, number | null> = {}
+  categoriesData?.forEach(c => { categoryLimits[c.name] = c.monthly_limit ?? null })
+
   const transactions = (txs ?? []) as Transaction[]
   const expenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
@@ -106,7 +115,7 @@ async function ReportContent({ searchParams }: { searchParams: SearchParams }) {
           {/* Resumo comparativo / Detalhamento */}
           <div className="page-card">
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: 12 }}>Resumo comparativo</div>
-            <ReportTable data={byCategory} totalExpenses={expenses} />
+            <ReportTable data={byCategory} totalExpenses={expenses} categoryLimits={categoryLimits} />
           </div>
         </div>
 

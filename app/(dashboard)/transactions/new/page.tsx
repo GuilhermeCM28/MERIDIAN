@@ -1,19 +1,22 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState }  from 'react'
+import { useState, useEffect }  from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
 const schema = z.object({
-  type: z.enum(['expense', 'income']),
-  description: z.string().min(1, 'A descrição é obrigatória'),
-  amount: z.number({ message: 'Valor inválido' }).positive('O valor deve ser maior que zero'),
-  date: z.string().min(1, 'A data é obrigatória'),
+  type:                z.enum(['expense', 'income']),
+  description:         z.string().min(1, 'A descrição é obrigatória'),
+  amount:              z.number({ message: 'Valor inválido' }).positive('O valor deve ser maior que zero'),
+  date:                z.string().min(1, 'A data é obrigatória'),
+  category_id:         z.string().optional(),
+  is_recurring:        z.boolean(),
+  recurrence_interval: z.enum(['daily', 'weekly', 'monthly', 'yearly']).optional(),
 })
 
 type TransactionFormData = z.infer<typeof schema>
@@ -31,19 +34,48 @@ function Field({ label, children, error }: { label: string; children: React.Reac
 const inputCls = "bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition"
 const inputErrorCls = "border-red-500 focus:border-red-500 focus:ring-red-500/30"
 
+const INTERVAL_LABELS: Record<string, string> = {
+  daily:   'Diária',
+  weekly:  'Semanal',
+  monthly: 'Mensal',
+  yearly:  'Anual',
+}
+
+/** Calculates the next_due_date based on a reference date and interval */
+function computeNextDue(date: string, interval: string): string {
+  const d = new Date(date + 'T00:00:00')
+  if (interval === 'daily')   d.setDate(d.getDate() + 1)
+  if (interval === 'weekly')  d.setDate(d.getDate() + 7)
+  if (interval === 'monthly') d.setMonth(d.getMonth() + 1)
+  if (interval === 'yearly')  d.setFullYear(d.getFullYear() + 1)
+  return d.toISOString().slice(0, 10)
+}
+
+interface Category { id: string; name: string; color: string | null }
+
 export default function NewTransactionPage() {
   const router   = useRouter()
   const supabase = createClient()
 
-  const [loading, setLoading] = useState(false)
+  const [loading,    setLoading]    = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm<TransactionFormData>({
+  // Load user categories
+  useEffect(() => {
+    supabase.from('categories').select('id, name, color').order('name')
+      .then(({ data }) => setCategories(data ?? []))
+  }, [supabase])
+
+  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<TransactionFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      type: 'expense',
-      date: new Date().toISOString().slice(0, 10),
+      type:         'expense',
+      date:         new Date().toISOString().slice(0, 10),
+      is_recurring: false,
     }
   })
+
+  const isRecurring = watch('is_recurring')
 
   async function onSubmit(data: TransactionFormData) {
     setLoading(true)
@@ -51,12 +83,20 @@ export default function NewTransactionPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { toast.error('Não autenticado'); setLoading(false); return }
 
+    const nextDue = data.is_recurring && data.recurrence_interval
+      ? computeNextDue(data.date, data.recurrence_interval)
+      : null
+
     const { error: err } = await supabase.from('transactions').insert({
-      user_id:     user.id,
-      description: data.description,
-      amount:      data.amount,
-      type:        data.type,
-      date:        data.date,
+      user_id:             user.id,
+      description:         data.description,
+      amount:              data.amount,
+      type:                data.type,
+      date:                data.date,
+      category_id:         data.category_id || null,
+      is_recurring:        data.is_recurring,
+      recurrence_interval: data.is_recurring ? (data.recurrence_interval ?? null) : null,
+      next_due_date:       nextDue,
     })
 
     if (err) { toast.error(err.message); setLoading(false); return }
@@ -130,6 +170,21 @@ export default function NewTransactionPage() {
           />
         </Field>
 
+        {/* Categoria */}
+        {categories.length > 0 && (
+          <Field label="Categoria (opcional)">
+            <select
+              {...register('category_id')}
+              className={`${inputCls} appearance-none`}
+            >
+              <option value="">— Sem categoria —</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </Field>
+        )}
+
         {/* Data */}
         <Field label="Data" error={errors.date?.message}>
           <input
@@ -138,6 +193,42 @@ export default function NewTransactionPage() {
             className={`${inputCls} ${errors.date ? inputErrorCls : ''}`}
           />
         </Field>
+
+        {/* Recorrência */}
+        <div className="space-y-3">
+          <Controller
+            name="is_recurring"
+            control={control}
+            render={({ field }) => (
+              <label className="flex items-center gap-3 cursor-pointer select-none group">
+                <div
+                  onClick={() => field.onChange(!field.value)}
+                  className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 cursor-pointer ${field.value ? 'bg-blue-600' : 'bg-neutral-700'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${field.value ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
+                <span className="text-sm text-neutral-400 group-hover:text-neutral-300 transition flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Transação recorrente
+                </span>
+              </label>
+            )}
+          />
+
+          {isRecurring && (
+            <Field label="Frequência" error={errors.recurrence_interval?.message}>
+              <select
+                {...register('recurrence_interval')}
+                className={`${inputCls} appearance-none`}
+              >
+                <option value="">Selecione…</option>
+                {Object.entries(INTERVAL_LABELS).map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
+              </select>
+            </Field>
+          )}
+        </div>
 
         {/* Submit */}
         <button

@@ -7,6 +7,35 @@ import Link                   from 'next/link'
 import { formatBRL, formatDate } from '@/lib/utils'
 import { Plus, TrendingUp, TrendingDown, Wallet, CreditCard, Sparkles, ArrowRight } from 'lucide-react'
 
+// ── Helper: variação % entre dois valores ──────────────────────────────────
+function pctChange(current: number, previous: number): { value: number; up: boolean; neutral: boolean } {
+  if (previous === 0) return { value: 0, up: true, neutral: true }
+  const diff = ((current - previous) / Math.abs(previous)) * 100
+  return { value: Math.abs(diff), up: diff >= 0, neutral: false }
+}
+
+function DeltaBadge({ current, previous, invertPositive = false }: { current: number; previous: number; invertPositive?: boolean }) {
+  const delta = pctChange(current, previous)
+  if (delta.neutral || delta.value < 0.5) return null
+
+  // For expenses: going up is BAD (invertPositive=true)
+  const isGood = invertPositive ? !delta.up : delta.up
+  const color  = isGood ? '#10b981' : '#f43f5e'
+  const arrow  = delta.up ? '↑' : '↓'
+
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 600,
+      color,
+      background: isGood ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)',
+      borderRadius: 6, padding: '2px 6px',
+      display: 'inline-flex', alignItems: 'center', gap: 2,
+    }}>
+      {arrow} {delta.value.toFixed(1)}%
+    </span>
+  )
+}
+
 const CAT_COLORS: Record<string, string> = {
   moradia:    '#3b82f6', // blue
   alimentação:'#f59e0b', // amber
@@ -27,8 +56,14 @@ export default async function DashboardPage() {
 
   const now = new Date()
 
-  const [summary, chart, profileResult, txResult] = await Promise.all([
+  // Mês anterior para comparativo
+  const prevDate  = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const prevYear  = prevDate.getFullYear()
+  const prevMonth = prevDate.getMonth() + 1
+
+  const [summary, prevSummary, chart, profileResult, txResult] = await Promise.all([
     getMonthSummary(user.id, now.getFullYear(), now.getMonth() + 1, supabase),
+    getMonthSummary(user.id, prevYear, prevMonth, supabase),
     getChartDataBulk(user.id, 5, supabase),
     supabase.from('profiles').select('name, monthly_budget').eq('id', user.id).single(),
     supabase
@@ -64,32 +99,46 @@ export default async function DashboardPage() {
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Receita */}
           <div className="glass-card p-5 group hover:-translate-y-1">
             <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
               <div className="w-8 h-8 rounded-lg bg-accent-emerald-subtle flex items-center justify-center">
                 <TrendingUp className="w-4 h-4 text-accent-emerald" />
               </div>
               Receita
+              <span className="ml-auto">
+                <DeltaBadge current={summary.total_income} previous={prevSummary.total_income} />
+              </span>
             </div>
             <div className="text-[28px] font-bold tracking-tight text-text-primary group-hover:text-accent-emerald transition-colors">
               {formatBRL(summary.total_income)}
             </div>
+            <div className="text-[11px] text-text-tertiary mt-1.5">
+              vs. mês anterior: {formatBRL(prevSummary.total_income)}
+            </div>
           </div>
 
+          {/* Gastos */}
           <div className="glass-card p-5 group hover:-translate-y-1">
             <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
               <div className="w-8 h-8 rounded-lg bg-accent-rose-subtle flex items-center justify-center">
                 <TrendingDown className="w-4 h-4 text-accent-rose" />
               </div>
               Gastos
+              <span className="ml-auto">
+                <DeltaBadge current={summary.total_expenses} previous={prevSummary.total_expenses} invertPositive />
+              </span>
             </div>
             <div className="text-[28px] font-bold tracking-tight text-text-primary group-hover:text-accent-rose transition-colors">
               {formatBRL(summary.total_expenses)}
             </div>
+            <div className="text-[11px] text-text-tertiary mt-1.5">
+              vs. mês anterior: {formatBRL(prevSummary.total_expenses)}
+            </div>
           </div>
 
+          {/* Saldo */}
           <div className="glass-card p-5 group hover:-translate-y-1 relative overflow-hidden">
-            {/* Soft glow for balance */}
             {summary.balance >= 0
               ? <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 bg-accent-emerald" />
               : <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 bg-accent-rose" />
@@ -106,9 +155,11 @@ export default async function DashboardPage() {
                 }`} />
               </div>
               Saldo
-              {/* Indicador pulsante quando negativo */}
+              <span className="ml-auto relative z-10">
+                <DeltaBadge current={summary.balance} previous={prevSummary.balance} />
+              </span>
               {summary.balance < 0 && (
-                <span className="ml-auto flex items-center gap-1 text-[11px] font-semibold text-accent-rose">
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-accent-rose">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-rose opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-rose" />
@@ -126,6 +177,9 @@ export default async function DashboardPage() {
                   {formatBRL(summary.balance)}
                 </div>
             }
+            <div className="text-[11px] text-text-tertiary mt-1.5 relative z-10">
+              vs. mês anterior: {formatBRL(prevSummary.balance)}
+            </div>
           </div>
         </div>
 

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatBRL } from '@/lib/utils'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
-import { Inbox } from 'lucide-react'
+import { Inbox, RefreshCw } from 'lucide-react'
 import { TransactionEditModal } from './TransactionEditModal'
 import type { Transaction } from '@/types'
 
@@ -106,9 +106,22 @@ export function TransactionList({ transactions }: TransactionListProps) {
                 </td>
                 <td className="text-neutral-400">{dateStr}</td>
                 <td>
-                  <span className={`badge ${tx.type === 'income' ? 'badge-income' : 'badge-expense'}`}>
-                    {tx.type === 'income' ? 'Receita' : 'Gasto'}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span className={`badge ${tx.type === 'income' ? 'badge-income' : 'badge-expense'}`}>
+                      {tx.type === 'income' ? 'Receita' : 'Gasto'}
+                    </span>
+                    {(tx as any).is_recurring && (
+                      <span title="Recorrente" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 3,
+                        fontSize: 10, color: '#60a5fa',
+                        background: 'rgba(96,165,250,0.1)', borderRadius: 4,
+                        padding: '1px 5px', fontWeight: 500
+                      }}>
+                        <RefreshCw style={{ width: 9, height: 9 }} />
+                        Recorrente
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className={`text-right font-medium ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
                   {tx.type === 'income' ? '+' : '-'}{formatBRL(tx.amount)}
