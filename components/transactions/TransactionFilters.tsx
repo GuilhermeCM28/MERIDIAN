@@ -23,17 +23,17 @@ export function TransactionFilters({ categories }: TransactionFiltersProps) {
   const month = params.get('month') ?? 'all'
   const category = params.get('category') ?? 'all'
 
-  const selectCls = "bg-transparent border border-neutral-700 rounded-lg text-xs text-white px-2 py-1 outline-none focus:border-blue-500 cursor-pointer"
+  const selectCls = "bg-transparent border border-border-primary rounded-lg text-xs text-text-primary px-2 py-1 outline-none focus:border-accent-blue cursor-pointer [&>option]:bg-background-secondary [&>option]:text-text-primary"
 
   return (
     <div className="flex items-center gap-2.5 flex-wrap">
       {/* Filtro de mês */}
-      <div className="flex items-center gap-1.5 border border-neutral-700 rounded-lg px-2 py-1 focus-within:border-blue-500">
-        <i className="ti ti-calendar text-neutral-500 text-sm" />
+      <div className="flex items-center gap-1.5 border border-border-primary rounded-lg px-2 py-1 focus-within:border-accent-blue">
+        <i className="ti ti-calendar text-text-secondary text-sm" />
         <select
           value={month}
           onChange={(e) => update('month', e.target.value)}
-          className="bg-transparent border-none text-white text-xs outline-none cursor-pointer"
+          className="bg-transparent border-none text-text-primary text-xs outline-none cursor-pointer [&>option]:bg-background-secondary [&>option]:text-text-primary"
         >
           <option value="all">Todo o período</option>
           <option value={new Date().toISOString().slice(0, 7)}>Mês atual</option>

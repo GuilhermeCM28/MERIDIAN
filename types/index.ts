@@ -25,6 +25,7 @@ export interface CategoryItem {
   pct: number
   count?: number
   monthly_limit?: number | null
+  color?: string | null
 }
 
 export interface MonthSummary {

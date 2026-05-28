@@ -100,7 +100,17 @@ export function TransactionList({ transactions }: TransactionListProps) {
               <motion.tr variants={itemVariants} key={tx.id}>
                 <td>{tx.description}</td>
                 <td>
-                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-400">
+                  <span 
+                    className="text-[11px] px-2 py-0.5 rounded-md"
+                    style={tx.category?.color ? { 
+                      backgroundColor: `${tx.category.color}25`, 
+                      color: tx.category.color,
+                      border: `1px solid ${tx.category.color}40`
+                    } : {
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      color: 'var(--color-text-secondary)'
+                    }}
+                  >
                     {tx.category?.name ?? '—'}
                   </span>
                 </td>
@@ -123,7 +133,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
                     )}
                   </div>
                 </td>
-                <td className={`text-right font-medium ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
+                <td className={`text-right font-medium ${tx.type === 'income' ? 'text-accent-emerald' : 'text-text-primary'}`}>
                   {tx.type === 'income' ? '+' : '-'}{formatBRL(tx.amount)}
                 </td>
                 <td className="text-right">

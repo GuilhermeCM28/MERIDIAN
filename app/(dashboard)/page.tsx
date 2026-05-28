@@ -230,7 +230,7 @@ export default async function DashboardPage() {
                   Nenhum gasto registrado
                 </div>
               ) : summary.by_category.map((c, i) => {
-                const color = catColor(c.category, i)
+                const color = c.color || catColor(c.category, i)
                 return (
                   <div key={c.category} className="flex flex-col gap-1.5 group">
                     <div className="flex items-center gap-3">

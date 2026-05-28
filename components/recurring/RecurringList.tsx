@@ -83,7 +83,17 @@ export function RecurringList({ initialData }: { initialData: RecurringTx[] }) {
                   <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary">
                     {cat && (
                       <>
-                        <span className="px-1.5 py-0.5 bg-background-primary rounded border border-border-primary">
+                        <span 
+                          className="px-1.5 py-0.5 rounded border"
+                          style={cat.color ? { 
+                            backgroundColor: `${cat.color}20`, 
+                            color: cat.color,
+                            borderColor: `${cat.color}40`
+                          } : {
+                            backgroundColor: 'var(--color-background-primary)',
+                            borderColor: 'var(--color-border-primary)'
+                          }}
+                        >
                           {cat.name}
                         </span>
                         <span>•</span>
