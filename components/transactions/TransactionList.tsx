@@ -133,7 +133,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
                     )}
                   </div>
                 </td>
-                <td className={`text-right font-medium ${tx.type === 'income' ? 'text-accent-emerald' : 'text-text-primary'}`}>
+                <td className={`text-right font-medium ${tx.type === 'income' ? 'text-accent-emerald' : 'text-accent-rose'}`}>
                   {tx.type === 'income' ? '+' : '-'}{formatBRL(tx.amount)}
                 </td>
                 <td className="text-right">

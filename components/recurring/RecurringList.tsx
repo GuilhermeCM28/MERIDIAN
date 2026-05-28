@@ -109,7 +109,7 @@ export function RecurringList({ initialData }: { initialData: RecurringTx[] }) {
 
               <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-auto w-full">
                 <div className="flex flex-col items-start sm:items-end">
-                  <div className={`text-sm font-bold ${tx.type === 'income' ? 'text-emerald-400' : 'text-text-primary'}`}>
+                  <div className={`text-sm font-bold ${tx.type === 'income' ? 'text-accent-emerald' : 'text-accent-rose'}`}>
                     {tx.type === 'income' ? '+' : '-'}{formatBRL(tx.amount)}
                   </div>
                   <div className="text-xs text-text-tertiary flex items-center gap-1 mt-1">

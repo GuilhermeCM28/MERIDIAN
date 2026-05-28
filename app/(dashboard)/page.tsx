@@ -286,7 +286,7 @@ export default async function DashboardPage() {
                       <span>{formatDate(tx.date)}</span>
                     </div>
                   </div>
-                  <div className={`text-[14px] font-bold whitespace-nowrap ${tx.type === 'income' ? 'text-accent-emerald' : 'text-text-primary'}`}>
+                  <div className={`text-[14px] font-bold whitespace-nowrap ${tx.type === 'income' ? 'text-accent-emerald' : 'text-accent-rose'}`}>
                     {tx.type === 'income' ? '+' : '-'}{formatBRL(tx.amount)}
                   </div>
                 </div>
