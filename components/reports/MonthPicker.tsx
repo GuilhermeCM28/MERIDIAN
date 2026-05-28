@@ -19,8 +19,8 @@ export function MonthPicker() {
   const selectedMonth = params.get('month') || `${currentYear}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-700 bg-neutral-800/50 focus-within:border-blue-500 transition-colors">
-      <i className="ti ti-calendar text-neutral-500 text-sm" />
+    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border-primary bg-background-tertiary focus-within:border-accent-blue transition-colors">
+      <i className="ti ti-calendar text-text-secondary text-sm" />
       <select
         value={selectedMonth}
         onChange={e => {
@@ -29,7 +29,7 @@ export function MonthPicker() {
           newParams.set('month', m)
           router.push(`?${newParams.toString()}`)
         }}
-        className="bg-transparent border-none text-white text-xs outline-none cursor-pointer"
+        className="bg-transparent border-none text-text-primary text-xs outline-none cursor-pointer [&>option]:bg-background-secondary [&>option]:text-text-primary"
       >
         {months.map(m => (
           <option key={m.value} value={m.value}>{m.label}</option>

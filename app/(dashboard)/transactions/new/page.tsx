@@ -31,8 +31,8 @@ function Field({ label, children, error }: { label: string; children: React.Reac
   )
 }
 
-const inputCls = "bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition"
-const inputErrorCls = "border-red-500 focus:border-red-500 focus:ring-red-500/30"
+const inputCls = "bg-background-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder-text-tertiary outline-none focus:border-accent-blue focus:ring-1 focus:ring-accent-blue/30 transition"
+const inputErrorCls = "border-accent-rose focus:border-accent-rose focus:ring-accent-rose/30"
 
 const INTERVAL_LABELS: Record<string, string> = {
   daily:   'Diária',
@@ -112,16 +112,16 @@ export default function NewTransactionPage() {
       <div className="mb-8">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-300 transition mb-4"
+          className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" strokeWidth={2} />
           Voltar
         </button>
-        <h1 className="text-xl font-semibold text-white">Nova transação</h1>
-        <p className="text-sm text-neutral-500 mt-0.5">Registre uma receita ou gasto</p>
+        <h1 className="text-xl font-semibold text-text-primary">Nova transação</h1>
+        <p className="text-sm text-text-secondary mt-0.5">Registre uma receita ou gasto</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-background-secondary border border-border-primary rounded-2xl p-6 space-y-5">
         {/* Tipo */}
         <Field label="Tipo" error={errors.type?.message}>
           <Controller
@@ -137,9 +137,9 @@ export default function NewTransactionPage() {
                     className={`py-3 rounded-xl text-sm font-medium transition border ${
                       field.value === t
                         ? t === 'income'
-                          ? 'bg-emerald-950/60 border-emerald-700 text-emerald-400'
-                          : 'bg-red-950/50 border-red-800 text-red-400'
-                        : 'bg-neutral-800 border-neutral-700 text-neutral-500 hover:text-neutral-300'
+                          ? 'bg-accent-emerald-subtle border-accent-emerald/50 text-accent-emerald'
+                          : 'bg-accent-rose-subtle border-accent-rose/50 text-accent-rose'
+                        : 'bg-background-tertiary border-border-primary text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     {t === 'income' ? '↑ Receita' : '↓ Gasto'}
@@ -203,11 +203,11 @@ export default function NewTransactionPage() {
               <label className="flex items-center gap-3 cursor-pointer select-none group">
                 <div
                   onClick={() => field.onChange(!field.value)}
-                  className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 cursor-pointer ${field.value ? 'bg-blue-600' : 'bg-neutral-700'}`}
+                  className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 cursor-pointer ${field.value ? 'bg-accent-blue' : 'bg-background-tertiary border border-border-primary'}`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${field.value ? 'translate-x-5' : 'translate-x-0'}`} />
                 </div>
-                <span className="text-sm text-neutral-400 group-hover:text-neutral-300 transition flex items-center gap-1.5">
+                <span className="text-sm text-text-secondary group-hover:text-text-primary transition flex items-center gap-1.5">
                   <RefreshCw className="w-3.5 h-3.5" />
                   Transação recorrente
                 </span>
@@ -234,7 +234,7 @@ export default function NewTransactionPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium text-sm py-3 rounded-xl transition"
+          className="w-full bg-accent-blue hover:bg-accent-blue-hover disabled:opacity-50 text-white font-medium text-sm py-3 rounded-xl transition"
         >
           {loading ? 'Salvando…' : 'Salvar transação'}
         </button>

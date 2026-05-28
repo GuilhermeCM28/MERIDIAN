@@ -30,7 +30,7 @@ interface TransactionEditModalProps {
   onSaved: () => void
 }
 
-const inputCls = "bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition w-full"
+const inputCls = "bg-background-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder-text-tertiary outline-none focus:border-accent-blue focus:ring-1 focus:ring-accent-blue/30 transition w-full"
 
 export function TransactionEditModal({ transaction, onClose, onSaved }: TransactionEditModalProps) {
   const supabase = createClient()
@@ -97,14 +97,14 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative bg-neutral-900/80 backdrop-blur-2xl border border-neutral-800 rounded-2xl w-full max-w-md shadow-2xl"
+        className="relative bg-background-secondary/90 backdrop-blur-2xl border border-border-primary rounded-2xl w-full max-w-md shadow-2xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-neutral-800">
-          <h2 className="text-sm font-semibold text-white">Editar transação</h2>
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border-primary">
+          <h2 className="text-sm font-semibold text-text-primary">Editar transação</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 transition"
+            className="p-1.5 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-background-tertiary transition"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -126,9 +126,9 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
                   className={`py-2.5 rounded-xl text-sm font-medium transition border ${
                     currentType === t
                       ? t === 'income'
-                        ? 'bg-emerald-950/60 border-emerald-700 text-emerald-400'
-                        : 'bg-red-950/50 border-red-800 text-red-400'
-                      : 'bg-neutral-800 border-neutral-700 text-neutral-500 hover:text-neutral-300'
+                        ? 'bg-accent-emerald-subtle border-accent-emerald/50 text-accent-emerald'
+                        : 'bg-accent-rose-subtle border-accent-rose/50 text-accent-rose'
+                      : 'bg-background-tertiary border-border-primary text-text-secondary hover:text-text-primary'
                   }`}
                 >
                   {t === 'income' ? '↑ Receita' : '↓ Gasto'}
@@ -192,14 +192,14 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 text-sm font-medium py-2.5 rounded-xl transition"
+              className="flex-1 border border-border-primary text-text-secondary hover:text-text-primary hover:bg-background-tertiary text-sm font-medium py-2.5 rounded-xl transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium text-sm py-2.5 rounded-xl transition"
+              className="flex-1 bg-accent-blue hover:bg-accent-blue-hover disabled:opacity-50 text-white font-medium text-sm py-2.5 rounded-xl transition"
             >
               {loading ? 'Salvando…' : 'Salvar'}
             </button>

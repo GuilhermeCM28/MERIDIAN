@@ -103,7 +103,7 @@ export default function ChatAssistant() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 pb-4 pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700">
         {isInitializing ? (
-          <div className="flex justify-center items-center h-full text-neutral-500 text-sm">
+          <div className="flex justify-center items-center h-full text-text-secondary text-sm">
             Carregando histórico...
           </div>
         ) : (
@@ -115,8 +115,8 @@ export default function ChatAssistant() {
             {/* Avatar */}
             <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-semibold mt-0.5 ${
               msg.role === 'assistant'
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-800/50'
-                : 'bg-neutral-800 text-neutral-300'
+                ? 'bg-accent-blue-subtle text-accent-blue border border-accent-blue/20'
+                : 'bg-background-tertiary border border-border-primary text-text-secondary'
             }`}>
               {msg.role === 'assistant' ? (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -133,8 +133,8 @@ export default function ChatAssistant() {
             {/* Bubble */}
             <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
               msg.role === 'assistant'
-                ? 'bg-neutral-800/80 text-neutral-200 rounded-tl-sm'
-                : 'bg-blue-600 text-white rounded-tr-sm'
+                ? 'bg-background-tertiary border border-border-primary text-text-primary rounded-tl-sm'
+                : 'bg-accent-blue text-white rounded-tr-sm'
             }`}>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -143,8 +143,8 @@ export default function ChatAssistant() {
                   ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
                   li: ({ children }) => <li className="mb-1">{children}</li>,
-                  a: ({ href, children }) => <a href={href} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-                  strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                  a: ({ href, children }) => <a href={href} className="text-accent-blue hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                  strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                 }}
               >
                 {msg.content}
@@ -156,16 +156,16 @@ export default function ChatAssistant() {
         {/* Loading dots */}
         {loading && (
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-blue-600/20 text-blue-400 border border-blue-800/50">
+            <div className="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-accent-blue-subtle text-accent-blue border border-accent-blue/20">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6l-.7 3H9l-.7-3A7 7 0 0 1 5 9a7 7 0 0 1 7-7z" />
                 <path d="M9 21h6" />
               </svg>
             </div>
-            <div className="bg-neutral-800/80 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-neutral-500 rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="w-1.5 h-1.5 bg-neutral-500 rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 bg-neutral-500 rounded-full animate-bounce [animation-delay:300ms]" />
+            <div className="bg-background-tertiary border border-border-primary rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-text-secondary rounded-full animate-bounce [animation-delay:0ms]" />
+              <span className="w-1.5 h-1.5 bg-text-secondary rounded-full animate-bounce [animation-delay:150ms]" />
+              <span className="w-1.5 h-1.5 bg-text-secondary rounded-full animate-bounce [animation-delay:300ms]" />
             </div>
           </div>
         )}
@@ -174,7 +174,7 @@ export default function ChatAssistant() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-neutral-800 pt-4">
+      <div className="border-t border-border-primary pt-4">
         <div className="flex gap-2 items-end">
           <textarea
             ref={inputRef}
@@ -184,7 +184,7 @@ export default function ChatAssistant() {
             placeholder="Pergunte sobre suas finanças… (Enter para enviar)"
             rows={1}
             disabled={loading}
-            className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition resize-none disabled:opacity-50"
+            className="flex-1 bg-background-secondary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder-text-tertiary outline-none focus:border-accent-blue focus:ring-1 focus:ring-accent-blue/30 transition resize-none disabled:opacity-50"
             style={{ minHeight: '44px', maxHeight: '120px' }}
             onInput={e => {
               const el = e.currentTarget
@@ -195,7 +195,7 @@ export default function ChatAssistant() {
           <button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
-            className="p-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition flex-shrink-0"
+            className="p-3 bg-accent-blue hover:bg-accent-blue-hover disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition flex-shrink-0"
             title="Enviar (Enter)"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -203,7 +203,7 @@ export default function ChatAssistant() {
             </svg>
           </button>
         </div>
-        <p className="text-xs text-neutral-600 mt-2 text-center">
+        <p className="text-xs text-text-tertiary mt-2 text-center">
           O assistente tem acesso ao seu resumo financeiro deste mês · Powered by Claude
         </p>
       </div>

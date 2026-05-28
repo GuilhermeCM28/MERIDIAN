@@ -36,9 +36,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
            <div className="w-8 h-8 rounded-xl bg-accent-blue flex items-center justify-center flex-shrink-0 shadow-lg shadow-accent-blue/20">
              <Globe className="w-4 h-4 text-white" strokeWidth={2} />
            </div>
-           <span className="text-[15px] font-semibold tracking-tight text-white">Meridian</span>
+           <span className="text-[15px] font-semibold tracking-tight text-text-primary">Meridian</span>
         </div>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-text-secondary hover:text-white p-2 rounded-lg hover:bg-background-tertiary transition-colors">
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-text-secondary hover:text-text-primary p-2 rounded-lg hover:bg-background-tertiary transition-colors">
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
@@ -63,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-blue to-cyan-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-accent-blue/30">
             <Globe className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[16px] font-bold tracking-tight text-white">Meridian</span>
+          <span className="text-[16px] font-bold tracking-tight text-text-primary">Meridian</span>
         </div>
 
         {/* Close Button (Mobile) */}
@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200
                    ${active 
                      ? 'bg-accent-blue-subtle text-accent-blue' 
-                     : 'text-text-secondary hover:bg-background-tertiary/50 hover:text-white'
+                     : 'text-text-secondary hover:bg-background-tertiary/50 hover:text-text-primary'
                    }
                  `}
                >
@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link
             href="/settings"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-text-secondary hover:bg-background-tertiary/50 hover:text-white transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-text-secondary hover:bg-background-tertiary/50 hover:text-text-primary transition-colors"
           >
             <Settings className="w-4 h-4 text-text-secondary" aria-hidden="true" />
             Configurações
