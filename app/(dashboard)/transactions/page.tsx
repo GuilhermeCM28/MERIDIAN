@@ -6,6 +6,7 @@ import { Suspense }             from 'react'
 import { lastDayOfMonth, formatBRL } from '@/lib/utils'
 import type { Transaction }     from '@/types'
 import Link from 'next/link'
+import { Plus, TrendingUp, TrendingDown, Wallet } from 'lucide-react'
 
 interface SearchParams {
   month?:    string
@@ -57,37 +58,71 @@ async function TransactionsContent({ searchParams, categories }: { searchParams:
         title="Transações"
         subtitle={`${txs.length} registros · ${monthName}`}
       >
-        <Link
-          href="/transactions/new"
-          style={{
-            background: '#2563eb', color: '#fff', border: 'none',
-            borderRadius: 'var(--border-radius-md)', padding: '7px 14px',
-            fontSize: 12, fontWeight: 500, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none'
-          }}
-        >
-          <i className="ti ti-plus" aria-hidden="true" />
+        <Link href="/transactions/new" className="btn-primary group">
+          <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
           Nova transação
         </Link>
       </PageTopbar>
 
       {/* ── Content ── */}
-      <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="flex-1 p-5 md:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
         
         <TransactionFilters categories={categories ?? []} />
 
-        {/* Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            { label: 'Total receitas', value: formatBRL(income),   color: 'var(--color-text-success)' },
-            { label: 'Total gastos',   value: formatBRL(expenses), color: 'var(--color-text-danger)' },
-            { label: 'Saldo',          value: formatBRL(balance),  color: balance >= 0 ? 'var(--color-text-success)' : 'var(--color-text-danger)' },
-          ].map(m => (
-            <div key={m.label} style={{ background: 'var(--color-background-secondary)', borderRadius: 'var(--border-radius-md)', padding: '12px 14px' }}>
-              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 5 }}>{m.label}</div>
-              <div style={{ fontSize: 20, fontWeight: 500, color: m.color }}>{m.value}</div>
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Receita */}
+          <div className="glass-card p-5 group hover:-translate-y-1">
+            <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-emerald-subtle flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-accent-emerald" />
+              </div>
+              Receitas
             </div>
-          ))}
+            <div className="text-[28px] font-bold tracking-tight text-text-primary group-hover:text-accent-emerald transition-colors">
+              {formatBRL(income)}
+            </div>
+          </div>
+
+          {/* Gastos */}
+          <div className="glass-card p-5 group hover:-translate-y-1">
+            <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-rose-subtle flex items-center justify-center">
+                <TrendingDown className="w-4 h-4 text-accent-rose" />
+              </div>
+              Gastos
+            </div>
+            <div className="text-[28px] font-bold tracking-tight text-text-primary group-hover:text-accent-rose transition-colors">
+              {formatBRL(expenses)}
+            </div>
+          </div>
+
+          {/* Saldo */}
+          <div className="glass-card p-5 group hover:-translate-y-1 relative overflow-hidden">
+            {balance >= 0
+              ? <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 bg-accent-emerald" />
+              : <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full blur-3xl opacity-20 bg-accent-rose" />
+            }
+
+            <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3 relative z-10">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-colors ${
+                balance >= 0
+                  ? 'bg-accent-emerald-subtle border-accent-emerald/20'
+                  : 'bg-accent-rose-subtle border-accent-rose/20'
+              }`}>
+                <Wallet className={`w-4 h-4 ${
+                  balance >= 0 ? 'text-accent-emerald' : 'text-accent-rose'
+                }`} />
+              </div>
+              Saldo
+            </div>
+
+            <div className={`text-[28px] font-bold tracking-tight relative z-10 transition-colors ${
+              balance >= 0 ? 'text-accent-emerald' : 'text-accent-rose'
+            }`}>
+              {formatBRL(balance)}
+            </div>
+          </div>
         </div>
 
         {/* Card containing Table */}
