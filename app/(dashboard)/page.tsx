@@ -90,7 +90,7 @@ export default async function DashboardPage() {
       >
         <Link href="/transactions/new" className="btn-primary group">
           <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
-          Novo gasto
+          Nova transação
         </Link>
       </PageTopbar>
 
@@ -232,15 +232,25 @@ export default async function DashboardPage() {
               ) : summary.by_category.map((c, i) => {
                 const color = catColor(c.category, i)
                 return (
-                  <div key={c.category} className="flex items-center gap-3 group">
-                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-150" style={{ background: color }} />
-                    <span className="text-[13px] font-medium text-text-secondary min-w-[80px]">{c.category}</span>
-                    <div className="flex-1 h-1.5 bg-background-tertiary rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ background: color, width: `${c.pct}%` }} />
+                  <div key={c.category} className="flex flex-col gap-1.5 group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-150" style={{ background: color }} />
+                      <span className="text-[13px] font-medium text-text-secondary min-w-[80px]">{c.category}</span>
+                      <div className="flex-1 h-1.5 bg-background-tertiary rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ background: c.monthly_limit && c.amount > c.monthly_limit ? 'var(--color-accent-rose)' : color, width: c.monthly_limit ? `${Math.min((c.amount / c.monthly_limit) * 100, 100)}%` : `${c.pct}%` }} />
+                      </div>
+                      <span className="text-[13px] font-semibold text-text-primary min-w-[70px] text-right">
+                        {formatBRL(c.amount)}
+                      </span>
                     </div>
-                    <span className="text-[13px] font-semibold text-text-primary min-w-[70px] text-right">
-                      {formatBRL(c.amount)}
-                    </span>
+                    {c.monthly_limit && c.monthly_limit > 0 && (
+                      <div className="flex justify-between items-center text-[11px] text-text-tertiary pl-14">
+                        <span>Limite: {formatBRL(c.monthly_limit)}</span>
+                        <span className={c.amount >= c.monthly_limit ? 'text-accent-rose font-medium' : c.amount >= c.monthly_limit * 0.8 ? 'text-amber-500 font-medium' : ''}>
+                          {Math.round((c.amount / c.monthly_limit) * 100)}% usado
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )
               })}

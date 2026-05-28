@@ -24,6 +24,7 @@ export interface CategoryItem {
   amount: number
   pct: number
   count?: number
+  monthly_limit?: number | null
 }
 
 export interface MonthSummary {

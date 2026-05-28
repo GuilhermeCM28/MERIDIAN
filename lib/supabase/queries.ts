@@ -4,7 +4,7 @@ import { lastDayOfMonth } from '@/lib/utils'
 import type { MonthSummary } from '@/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-type CategoryJoin = { name: string } | { name: string }[] | null
+type CategoryJoin = { name: string, monthly_limit?: number } | { name: string, monthly_limit?: number }[] | null
 
 /**
  * Calcula o resumo financeiro de um mês para um usuário.
@@ -25,7 +25,7 @@ export const getMonthSummary = cache(async (
 
   const { data } = await client
     .from('transactions')
-    .select('amount, type, category:categories(name)')
+    .select('amount, type, category:categories(name, monthly_limit)')
     .eq('user_id', userId)
     .gte('date', from)
     .lte('date', to)
@@ -33,22 +33,28 @@ export const getMonthSummary = cache(async (
   const income   = data?.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0) ?? 0
   const expenses = data?.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0) ?? 0
 
-  const byCat: Record<string, number> = {}
+  const byCat: Record<string, { amount: number, monthly_limit: number | null }> = {}
   data?.filter(t => t.type === 'expense').forEach(t => {
     // O Supabase pode retornar o join como objeto ou array — normalizamos ambos
     const cat = t.category as CategoryJoin
     const name = (Array.isArray(cat) ? cat[0]?.name : cat?.name) ?? 'Outros'
-    byCat[name] = (byCat[name] ?? 0) + t.amount
+    const limit = (Array.isArray(cat) ? cat[0]?.monthly_limit : cat?.monthly_limit) ?? null
+    
+    if (!byCat[name]) {
+      byCat[name] = { amount: 0, monthly_limit: limit }
+    }
+    byCat[name].amount += t.amount
   })
 
   return {
     total_income: income,
     total_expenses: expenses,
     balance: income - expenses,
-    by_category: Object.entries(byCat).map(([category, amount]) => ({
+    by_category: Object.entries(byCat).map(([category, val]) => ({
       category,
-      amount,
-      pct: expenses > 0 ? Math.round((amount / expenses) * 100) : 0,
+      amount: val.amount,
+      pct: expenses > 0 ? Math.round((val.amount / expenses) * 100) : 0,
+      monthly_limit: val.monthly_limit,
     })),
   }
 })
