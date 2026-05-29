@@ -88,6 +88,7 @@ export function DailyDrilldown({ monthKey, monthLabel, onClose }: Props) {
 
   const totalIncome   = data.reduce((s, d) => s + d.income, 0)
   const totalExpenses = data.reduce((s, d) => s + d.expenses, 0)
+  const totalInvestments = data.reduce((s, d) => s + d.investments, 0)
   const peakDay       = data.reduce((best, d) => d.expenses > best.expenses ? d : best, { day: 0, expenses: 0 })
 
   return (
@@ -144,7 +145,7 @@ export function DailyDrilldown({ monthKey, monthLabel, onClose }: Props) {
 
         {/* Quick stats */}
         {!loading && data.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 px-6 pt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 pt-4">
             {/* Receita */}
             <div
               className="rounded-xl p-3 border"
@@ -166,6 +167,17 @@ export function DailyDrilldown({ monthKey, monthLabel, onClose }: Props) {
                 <span className="text-[11px] text-text-tertiary font-medium">Gastos</span>
               </div>
               <p className="text-[15px] font-bold text-accent-rose tabular-nums">{formatBRL(totalExpenses)}</p>
+            </div>
+            {/* Investimentos */}
+            <div
+              className="rounded-xl p-3 border"
+              style={{ background: 'var(--color-background-tertiary)', borderColor: 'var(--color-border-primary)' }}
+            >
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-violet-500" />
+                <span className="text-[11px] text-text-tertiary font-medium">Investimentos</span>
+              </div>
+              <p className="text-[15px] font-bold text-violet-500 tabular-nums">{formatBRL(totalInvestments)}</p>
             </div>
             {/* Pico */}
             <div
