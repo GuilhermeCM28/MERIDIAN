@@ -1,12 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { PageTopbar } from '@/components/ui/PageTopbar'
 import { motion } from 'framer-motion'
-import { TrendingUp, Plus, DollarSign, Wallet } from 'lucide-react'
+import { TrendingUp, Plus, DollarSign, Wallet, Trash2, Edit2 } from 'lucide-react'
 import type { Investment } from '@/types'
 import { AddInvestmentModal } from './AddInvestmentModal'
 import { AddYieldModal } from './AddYieldModal'
+import { EditPercentageModal } from './EditPercentageModal'
 
 interface InvestmentsClientProps {
   investments: Investment[]
@@ -17,8 +21,22 @@ function formatBRL(value: number) {
 }
 
 export function InvestmentsClient({ investments }: InvestmentsClientProps) {
+  const router = useRouter()
   const [showAddForm, setShowAddForm] = useState(false)
   const [selectedInvestmentForYield, setSelectedInvestmentForYield] = useState<Investment | null>(null)
+  const [editingPercentageFor, setEditingPercentageFor] = useState<Investment | null>(null)
+
+  async function handleDelete(id: string) {
+    if (!confirm('Tem certeza que deseja excluir este investimento?')) return
+    const supabase = createClient()
+    const { error } = await supabase.from('investments').delete().eq('id', id)
+    if (error) {
+      toast.error(error.message)
+    } else {
+      toast.success('Investimento excluído!')
+      router.refresh()
+    }
+  }
 
   const totalInvested = investments.reduce((acc, curr) => acc + curr.invested_amount, 0)
   const totalYield = investments.reduce((acc, curr) => acc + curr.yield_amount, 0)
@@ -103,11 +121,21 @@ export function InvestmentsClient({ investments }: InvestmentsClientProps) {
                         <h3 className="text-base font-semibold text-text-primary">{inv.name}</h3>
                         <span className="text-xs text-text-secondary font-medium uppercase tracking-wide">{inv.type}</span>
                       </div>
-                      {inv.expected_return_percentage !== null && (
-                        <div className="bg-background-tertiary px-2 py-1 rounded-md text-xs font-semibold text-emerald-500">
-                          {inv.expected_return_percentage}% a.a.
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setEditingPercentageFor(inv)} className="text-text-secondary hover:text-emerald-500 transition-colors" title="Alterar rentabilidade">
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete(inv.id)} className="text-text-secondary hover:text-accent-rose transition-colors" title="Excluir investimento">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      )}
+                        {inv.expected_return_percentage !== null && (
+                          <div className="bg-background-tertiary px-2 py-1 rounded-md text-xs font-semibold text-emerald-500">
+                            {inv.expected_return_percentage}% a.a.
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="space-y-2 mb-4">
@@ -145,6 +173,12 @@ export function InvestmentsClient({ investments }: InvestmentsClientProps) {
         <AddYieldModal 
           investment={selectedInvestmentForYield} 
           onClose={() => setSelectedInvestmentForYield(null)} 
+        />
+      )}
+      {editingPercentageFor && (
+        <EditPercentageModal 
+          investment={editingPercentageFor} 
+          onClose={() => setEditingPercentageFor(null)} 
         />
       )}
     </div>
