@@ -98,7 +98,7 @@ export default async function DashboardPage() {
       <div className="flex-1 p-5 md:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Receita */}
           <div className="glass-card p-5 group hover:-translate-y-1">
             <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
@@ -134,6 +134,25 @@ export default async function DashboardPage() {
             </div>
             <div className="text-[11px] text-text-tertiary mt-1.5">
               vs. mês anterior: {formatBRL(prevSummary.total_expenses)}
+            </div>
+          </div>
+
+          {/* Investimentos */}
+          <div className="glass-card p-5 group hover:-translate-y-1">
+            <div className="flex items-center gap-2.5 text-text-secondary font-medium text-[13px] mb-3">
+              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-violet-500" />
+              </div>
+              Investido
+              <span className="ml-auto">
+                <DeltaBadge current={summary.total_investments} previous={prevSummary.total_investments} />
+              </span>
+            </div>
+            <div className="text-[28px] font-bold tracking-tight text-text-primary group-hover:text-violet-500 transition-colors">
+              {formatBRL(summary.total_investments)}
+            </div>
+            <div className="text-[11px] text-text-tertiary mt-1.5">
+              vs. mês anterior: {formatBRL(prevSummary.total_investments)}
             </div>
           </div>
 

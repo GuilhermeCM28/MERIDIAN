@@ -12,6 +12,7 @@ interface DayData {
   day: number
   income: number
   expenses: number
+  investments: number
 }
 
 interface Props {
@@ -40,7 +41,7 @@ const DailyTooltip = ({ active, payload, label }: any) => {
       {payload.map((p: any) => (
         p.value > 0 && (
           <p key={p.dataKey} style={{ color: p.fill }} className="mb-0.5 tabular-nums">
-            {p.dataKey === 'income' ? 'Receita' : 'Gastos'}:{' '}
+            {p.dataKey === 'income' ? 'Receita' : p.dataKey === 'expenses' ? 'Gastos' : 'Investimento'}:{' '}
             <span className="font-semibold">{formatBRL(Number(p.value))}</span>
           </p>
         )
@@ -246,6 +247,14 @@ export function DailyDrilldown({ monthKey, monthLabel, onClose }: Props) {
                       />
                     ))}
                   </Bar>
+                  <Bar dataKey="investments" radius={[3, 3, 0, 0]} maxBarSize={14}>
+                    {data.map((entry) => (
+                      <Cell
+                        key={`investments-${entry.day}`}
+                        fill={entry.investments > 0 ? '#8b5cf6' : 'transparent'}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
 
@@ -256,6 +265,9 @@ export function DailyDrilldown({ monthKey, monthLabel, onClose }: Props) {
                 </span>
                 <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">
                   <span className="w-2.5 h-2.5 rounded-sm bg-red-500" />Gastos
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-violet-500" />Investimentos
                 </span>
                 {peakDay.expenses > 0 && (
                   <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">

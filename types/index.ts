@@ -32,6 +32,7 @@ export interface CategoryItem {
 export interface MonthSummary {
   total_income: number
   total_expenses: number
+  total_investments: number
   balance: number
   by_category: CategoryItem[]
 }
@@ -51,6 +52,7 @@ export interface MonthlyReport {
   label: string        // "Mai 2025"
   total_income: number
   total_expenses: number
+  total_investments: number
   balance: number
   by_category: CategoryItem[]
   transactions: Transaction[]

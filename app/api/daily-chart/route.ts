@@ -32,12 +32,13 @@ export async function GET(req: NextRequest) {
   const daysInMonth = new Date(year, month, 0).getDate()
 
   // Agrupar por dia
-  const byDay: Record<number, { income: number; expenses: number }> = {}
+  const byDay: Record<number, { income: number; expenses: number; investments: number }> = {}
   data?.forEach(t => {
     const day = parseInt(t.date.slice(8, 10), 10)
-    if (!byDay[day]) byDay[day] = { income: 0, expenses: 0 }
+    if (!byDay[day]) byDay[day] = { income: 0, expenses: 0, investments: 0 }
     if (t.type === 'income')  byDay[day].income   += t.amount
     if (t.type === 'expense') byDay[day].expenses += t.amount
+    if (t.type === 'investment') byDay[day].investments += t.amount
   })
 
   // Retorna array com todos os dias do mês (mesmo sem transações)
@@ -47,6 +48,7 @@ export async function GET(req: NextRequest) {
       day,
       income:   byDay[day]?.income   ?? 0,
       expenses: byDay[day]?.expenses ?? 0,
+      investments: byDay[day]?.investments ?? 0,
     }
   })
 

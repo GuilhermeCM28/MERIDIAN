@@ -32,10 +32,10 @@ export const getMonthSummary = cache(async (
 
   const income   = data?.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0) ?? 0
   const expenses = data?.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0) ?? 0
+  const investments = data?.filter(t => t.type === 'investment').reduce((s, t) => s + t.amount, 0) ?? 0
 
   const byCat: Record<string, { amount: number, monthly_limit: number | null, color: string | null }> = {}
-  data?.filter(t => t.type === 'expense').forEach(t => {
-    // O Supabase pode retornar o join como objeto ou array — normalizamos ambos
+  data?.filter(t => t.type === 'expense' || t.type === 'investment').forEach(t => {
     const cat = t.category as CategoryJoin
     const name = (Array.isArray(cat) ? cat[0]?.name : cat?.name) ?? 'Outros'
     const limit = (Array.isArray(cat) ? cat[0]?.monthly_limit : cat?.monthly_limit) ?? null
@@ -47,14 +47,18 @@ export const getMonthSummary = cache(async (
     byCat[name].amount += t.amount
   })
 
+  // Total for percentage calculations should include both expenses and investments
+  const totalOut = expenses + investments
+
   return {
     total_income: income,
     total_expenses: expenses,
-    balance: income - expenses,
+    total_investments: investments,
+    balance: income - totalOut,
     by_category: Object.entries(byCat).map(([category, val]) => ({
       category,
       amount: val.amount,
-      pct: expenses > 0 ? Math.round((val.amount / expenses) * 100) : 0,
+      pct: totalOut > 0 ? Math.round((val.amount / totalOut) * 100) : 0,
       monthly_limit: val.monthly_limit,
       color: val.color,
     })),
@@ -68,6 +72,7 @@ export interface ChartMonthData {
   monthKey: string  // ex: "2026-05" — usado para drill-down diário
   income:   number
   expenses: number
+  investments: number
 }
 
 /**
@@ -101,13 +106,14 @@ export const getChartDataBulk = cache(async (
     .lte('date', to)
 
   // Agrupa por "YYYY-MM" em JS
-  const byMonth: Record<string, { income: number; expenses: number }> = {}
+  const byMonth: Record<string, { income: number; expenses: number; investments: number }> = {}
 
   data?.forEach(t => {
     const key = t.date.slice(0, 7)  // "YYYY-MM"
-    if (!byMonth[key]) byMonth[key] = { income: 0, expenses: 0 }
+    if (!byMonth[key]) byMonth[key] = { income: 0, expenses: 0, investments: 0 }
     if (t.type === 'income')  byMonth[key].income   += t.amount
     if (t.type === 'expense') byMonth[key].expenses += t.amount
+    if (t.type === 'investment') byMonth[key].investments += t.amount
   })
 
   // Garante que todos os N meses estejam presentes, mesmo os sem transações
@@ -119,6 +125,7 @@ export const getChartDataBulk = cache(async (
       monthKey: key,
       income:   byMonth[key]?.income   ?? 0,
       expenses: byMonth[key]?.expenses ?? 0,
+      investments: byMonth[key]?.investments ?? 0,
     }
   })
 })

@@ -79,7 +79,7 @@ export function AddInvestmentModal({ onClose }: AddInvestmentModalProps) {
         category_id: categoryId,
         description: `Aporte: ${data.name}`,
         amount: data.invested_amount,
-        type: 'expense',
+        type: 'investment',
         date: new Date().toISOString().split('T')[0],
       })
     }

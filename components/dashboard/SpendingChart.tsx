@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <p className="text-text-secondary mb-2 font-medium">{label}</p>
       {payload.map((p: any) => (
         <p key={p.name} style={{ color: p.fill }} className="mb-0.5 tabular-nums">
-          {p.name === 'income' ? 'Receita' : 'Gastos'}:{' '}
+          {p.name === 'income' ? 'Receita' : p.name === 'expenses' ? 'Gastos' : 'Investimento'}:{' '}
           <span className="font-semibold">{formatBRL(Number(p.value))}</span>
         </p>
       ))}
@@ -108,6 +108,10 @@ export function SpendingChart({ data }: SpendingChartProps) {
                 <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
               </linearGradient>
+              <linearGradient id="colorInvestments" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#8b5cf6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+              </linearGradient>
             </defs>
             <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" strokeDasharray="4 4" />
             <XAxis
@@ -130,6 +134,7 @@ export function SpendingChart({ data }: SpendingChartProps) {
             />
             <Area type="monotone" dataKey="income"   stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)"   activeDot={{ r: 5, strokeWidth: 2, stroke: '#10b981', fill: 'var(--color-background-secondary)' }} />
             <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorExpenses)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#ef4444', fill: 'var(--color-background-secondary)' }} />
+            <Area type="monotone" dataKey="investments" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorInvestments)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#8b5cf6', fill: 'var(--color-background-secondary)' }} />
           </AreaChart>
         </ResponsiveContainer>
 
@@ -139,6 +144,9 @@ export function SpendingChart({ data }: SpendingChartProps) {
           </span>
           <span className="flex items-center gap-1.5 text-xs text-text-secondary">
             <span className="w-2.5 h-2.5 rounded-sm bg-red-500" />Gastos
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-text-secondary">
+            <span className="w-2.5 h-2.5 rounded-sm bg-violet-500" />Investimentos
           </span>
         </div>
       </div>
