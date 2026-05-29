@@ -54,6 +54,36 @@ export function AddInvestmentModal({ onClose }: AddInvestmentModalProps) {
 
     if (err) { toast.error(err.message); setLoading(false); return }
 
+    if (data.invested_amount > 0) {
+      let categoryId = null
+      const { data: cat } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('name', 'Investimentos')
+        .single()
+      
+      if (cat) {
+        categoryId = cat.id
+      } else {
+        const { data: newCat } = await supabase
+          .from('categories')
+          .insert({ user_id: user.id, name: 'Investimentos', color: '#8b5cf6' })
+          .select('id')
+          .single()
+        if (newCat) categoryId = newCat.id
+      }
+
+      await supabase.from('transactions').insert({
+        user_id: user.id,
+        category_id: categoryId,
+        description: `Aporte: ${data.name}`,
+        amount: data.invested_amount,
+        type: 'expense',
+        date: new Date().toISOString().split('T')[0],
+      })
+    }
+
     toast.success('Investimento adicionado!')
     router.refresh()
     onClose()

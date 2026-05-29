@@ -47,6 +47,39 @@ export function AddYieldModal({ investment, onClose }: AddYieldModalProps) {
 
     if (err) { toast.error(err.message); setLoading(false); return }
 
+    if (data.added_yield > 0) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        let categoryId = null
+        const { data: cat } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('name', 'Rendimentos')
+          .single()
+        
+        if (cat) {
+          categoryId = cat.id
+        } else {
+          const { data: newCat } = await supabase
+            .from('categories')
+            .insert({ user_id: user.id, name: 'Rendimentos', color: '#10b981' })
+            .select('id')
+            .single()
+          if (newCat) categoryId = newCat.id
+        }
+
+        await supabase.from('transactions').insert({
+          user_id: user.id,
+          category_id: categoryId,
+          description: `Rendimento: ${investment.name}`,
+          amount: data.added_yield,
+          type: 'income',
+          date: new Date().toISOString().split('T')[0],
+        })
+      }
+    }
+
     toast.success('Rendimento atualizado!')
     router.refresh()
     onClose()
