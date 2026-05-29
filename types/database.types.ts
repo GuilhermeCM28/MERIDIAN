@@ -165,6 +165,50 @@ export interface Database {
           }
         ]
       }
+      investments: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          type: string
+          invested_amount: number
+          expected_return_percentage: number | null
+          yield_amount: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          type: string
+          invested_amount?: number
+          expected_return_percentage?: number | null
+          yield_amount?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          type?: string
+          invested_amount?: number
+          expected_return_percentage?: number | null
+          yield_amount?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

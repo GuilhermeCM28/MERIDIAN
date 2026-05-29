@@ -6,6 +6,7 @@ export type ProfileRow = Database['public']['Tables']['profiles']['Row']
 export type CategoryRow = Database['public']['Tables']['categories']['Row']
 export type TransactionRow = Database['public']['Tables']['transactions']['Row']
 export type GoalRow = Database['public']['Tables']['goals']['Row']
+export type InvestmentRow = Database['public']['Tables']['investments']['Row']
 
 // ─── Categoria ───────────────────────────────────────────────────────────────
 
@@ -38,6 +39,10 @@ export interface MonthSummary {
 // ─── Metas ───────────────────────────────────────────────────────────────────
 
 export interface Goal extends GoalRow {}
+
+// ─── Investimentos ─────────────────────────────────────────────────────────────
+
+export interface Investment extends InvestmentRow {}
 
 // ─── Relatórios ──────────────────────────────────────────────────────────────
 

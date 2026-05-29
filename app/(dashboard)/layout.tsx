@@ -4,12 +4,13 @@ import { useState } from 'react'
 import Link      from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Globe, LayoutDashboard, ArrowRightLeft, Target, BarChart3, Sparkles, Settings, LogOut, Menu, X, RefreshCw } from 'lucide-react'
+import { Globe, LayoutDashboard, ArrowRightLeft, Target, BarChart3, Sparkles, Settings, LogOut, Menu, X, RefreshCw, TrendingUp } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const navItems = [
   { href: '/',             icon: LayoutDashboard, label: 'Visão geral'  },
   { href: '/transactions', icon: ArrowRightLeft,  label: 'Transações'   },
+  { href: '/investments',  icon: TrendingUp,      label: 'Investimentos'},
   { href: '/goals',        icon: Target,            label: 'Metas'         },
   { href: '/reports',      icon: BarChart3,         label: 'Relatórios'   },
   { href: '/recurring',    icon: RefreshCw,         label: 'Assinaturas'  },
